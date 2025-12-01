@@ -20,14 +20,14 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "bg-sidebar border-r border-sidebar-border transition-smooth flex flex-col",
+        "bg-sidebar/80 backdrop-blur-lg border-r border-sidebar-border/50 transition-smooth flex flex-col",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Header */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border/50">
         {!collapsed && (
-          <h1 className="font-display font-bold text-xl text-sidebar-primary">
+          <h1 className="font-display font-bold text-xl bg-gradient-to-r from-sidebar-primary to-primary bg-clip-text text-transparent">
             AutoRent
           </h1>
         )}
@@ -35,7 +35,7 @@ export function Sidebar() {
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className="transition-smooth"
+          className="transition-smooth hover:bg-sidebar-accent/50"
         >
           {collapsed ? (
             <ChevronRight className="h-5 w-5" />
@@ -53,12 +53,12 @@ export function Sidebar() {
             to={item.href}
             end={item.href === "/"}
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground transition-smooth hover:bg-sidebar-accent",
+              "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sidebar-foreground transition-smooth hover:bg-sidebar-accent/50 group",
               collapsed && "justify-center"
             )}
-            activeClassName="bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary"
+            activeClassName="bg-gradient-to-r from-sidebar-primary to-primary text-sidebar-primary-foreground font-medium hover:from-sidebar-primary hover:to-primary shadow-smooth"
           >
-            <item.icon className="h-5 w-5 flex-shrink-0" />
+            <item.icon className="h-5 w-5 flex-shrink-0 group-hover:scale-110 transition-transform" />
             {!collapsed && <span>{item.name}</span>}
           </NavLink>
         ))}

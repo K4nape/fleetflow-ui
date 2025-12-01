@@ -61,31 +61,33 @@ export default function Cars() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-display mb-2">Mašinų parkas</h1>
-          <p className="text-muted-foreground">Valdykite visas savo transporto priemones</p>
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold font-display bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            Mašinų parkas
+          </h1>
+          <p className="text-muted-foreground text-lg">Valdykite savo automobilių parką</p>
         </div>
-        <Button className="gap-2 transition-smooth">
+        <Button className="shadow-lg">
           <Plus className="h-4 w-4" />
-          Pridėti naują
+          Pridėti mašiną
         </Button>
       </div>
 
       {/* Filters */}
-      <Card className="p-4">
+      <Card className="p-4 bg-gradient-to-br from-card to-card/50">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative col-span-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Paieška pagal numerį, VIN, markę..."
-              className="pl-10"
+              className="pl-10 bg-background/50 border-border/50 focus:ring-primary/50 rounded-xl"
             />
           </div>
           <Select>
-            <SelectTrigger>
+            <SelectTrigger className="bg-background/50 border-border/50 rounded-xl">
               <SelectValue placeholder="Statusas" />
             </SelectTrigger>
             <SelectContent>
@@ -97,7 +99,7 @@ export default function Cars() {
             </SelectContent>
           </Select>
           <Select>
-            <SelectTrigger>
+            <SelectTrigger className="bg-background/50 border-border/50 rounded-xl">
               <SelectValue placeholder="Kuro tipas" />
             </SelectTrigger>
             <SelectContent>
@@ -112,11 +114,11 @@ export default function Cars() {
       </Card>
 
       {/* Cars Table - Desktop */}
-      <Card className="hidden md:block overflow-hidden">
+      <Card className="hidden md:block overflow-hidden bg-gradient-to-br from-card to-card/50">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border bg-muted/50">
+              <tr className="border-b border-border/50 bg-muted/30">
                 <th className="text-left p-4 font-semibold">Automobilis</th>
                 <th className="text-left p-4 font-semibold">Numeris</th>
                 <th className="text-left p-4 font-semibold">Metai</th>
@@ -130,14 +132,14 @@ export default function Cars() {
               {cars.map((car) => (
                 <tr
                   key={car.id}
-                  className="border-b border-border last:border-0 hover:bg-muted/30 transition-smooth"
+                  className="border-b border-border/50 last:border-0 hover:bg-accent/20 transition-smooth"
                 >
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <img
                         src={car.image}
                         alt={`${car.brand} ${car.model}`}
-                        className="w-12 h-12 rounded-lg object-cover"
+                        className="w-12 h-12 rounded-xl object-cover shadow-smooth"
                       />
                       <div>
                         <p className="font-medium">{car.brand} {car.model}</p>
@@ -156,7 +158,7 @@ export default function Cars() {
                   <td className="p-4 text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="transition-smooth">
+                        <Button variant="ghost" size="icon" className="transition-smooth hover:bg-accent/50">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -186,12 +188,12 @@ export default function Cars() {
       {/* Cars Grid - Mobile */}
       <div className="grid md:hidden gap-4">
         {cars.map((car) => (
-          <Card key={car.id} className="p-4 transition-smooth hover:shadow-smooth-lg">
+          <Card key={car.id} className="p-4 hover-lift bg-gradient-to-br from-card to-card/50">
             <div className="flex gap-4">
               <img
                 src={car.image}
                 alt={`${car.brand} ${car.model}`}
-                className="w-20 h-20 rounded-lg object-cover"
+                className="w-20 h-20 rounded-xl object-cover shadow-smooth"
               />
               <div className="flex-1 space-y-2">
                 <div className="flex items-start justify-between">
