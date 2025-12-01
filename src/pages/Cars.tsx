@@ -61,33 +61,34 @@ export default function Cars() {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold font-display bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+      <div className="flex items-center justify-between gap-3">
+        <div className="space-y-1 sm:space-y-2 flex-1 min-w-0">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-display bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent truncate">
             Mašinų parkas
           </h1>
-          <p className="text-muted-foreground text-lg">Valdykite savo automobilių parką</p>
+          <p className="text-muted-foreground text-sm sm:text-base lg:text-lg hidden sm:block">Valdykite savo automobilių parką</p>
         </div>
-        <Button className="shadow-lg">
+        <Button className="shadow-lg flex-shrink-0">
           <Plus className="h-4 w-4" />
-          Pridėti mašiną
+          <span className="hidden sm:inline">Pridėti mašiną</span>
+          <span className="sm:hidden">Pridėti</span>
         </Button>
       </div>
 
       {/* Filters */}
-      <Card className="p-4 bg-gradient-to-br from-card to-card/50">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative col-span-2">
+      <Card className="p-3 sm:p-4 bg-gradient-to-br from-card to-card/50">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+          <div className="relative sm:col-span-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Paieška pagal numerį, VIN, markę..."
-              className="pl-10 bg-background/50 border-border/50 focus:ring-primary/50 rounded-xl"
+              placeholder="Paieška..."
+              className="pl-10 bg-background/50 border-border/50 focus:ring-primary/50 rounded-xl text-sm"
             />
           </div>
           <Select>
-            <SelectTrigger className="bg-background/50 border-border/50 rounded-xl">
+            <SelectTrigger className="bg-background/50 border-border/50 rounded-xl text-sm">
               <SelectValue placeholder="Statusas" />
             </SelectTrigger>
             <SelectContent>
@@ -99,8 +100,8 @@ export default function Cars() {
             </SelectContent>
           </Select>
           <Select>
-            <SelectTrigger className="bg-background/50 border-border/50 rounded-xl">
-              <SelectValue placeholder="Kuro tipas" />
+            <SelectTrigger className="bg-background/50 border-border/50 rounded-xl text-sm">
+              <SelectValue placeholder="Kuras" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Visi</SelectItem>
