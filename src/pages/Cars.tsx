@@ -73,7 +73,7 @@ export default function Cars() {
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base lg:text-lg hidden sm:block">Valdykite savo automobilių parką</p>
         </div>
-        <Button className="shadow-lg flex-shrink-0">
+        <Button className="shadow-lg flex-shrink-0" onClick={() => navigate("/cars/new")}>
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Pridėti mašiną</span>
           <span className="sm:hidden">Pridėti</span>
