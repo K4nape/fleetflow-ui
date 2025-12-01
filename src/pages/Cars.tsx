@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Cars() {
+  const navigate = useNavigate();
+  
   // Mock data
   const cars = [
     {
@@ -164,7 +167,7 @@ export default function Cars() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-popover">
-                        <DropdownMenuItem className="gap-2 cursor-pointer">
+                        <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate(`/cars/${car.id}`)}>
                           <Eye className="h-4 w-4" />
                           Peržiūrėti
                         </DropdownMenuItem>
