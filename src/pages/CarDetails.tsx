@@ -142,7 +142,7 @@ export default function CarDetails() {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Button variant="outline" size="icon" className="hidden sm:flex">
+          <Button variant="outline" size="icon" className="hidden sm:flex" onClick={() => navigate(`/cars/${id}/edit`)}>
             <Edit className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="icon" className="hidden sm:flex text-destructive hover:text-destructive">
