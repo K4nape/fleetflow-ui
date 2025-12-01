@@ -176,4 +176,9 @@ All colors MUST be HSL.
   .hover-lift:hover {
     @apply -translate-y-1 shadow-smooth-lg;
   }
+  
+  /* Safe area for notched devices */
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

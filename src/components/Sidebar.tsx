@@ -20,7 +20,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "bg-sidebar/80 backdrop-blur-lg border-r border-sidebar-border/50 transition-smooth flex flex-col",
+        "bg-sidebar/80 backdrop-blur-lg border-r border-sidebar-border/50 transition-smooth flex-col hidden lg:flex",
         collapsed ? "w-16" : "w-64"
       )}
     >
