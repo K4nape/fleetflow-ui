@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,15 @@ import {
   AlertTriangle,
   Euro,
   Clock,
+  Play,
+  CalendarPlus,
+  TrendingUp,
+  Users,
+  FileText,
+  MapPin,
+  Download,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,10 +43,35 @@ export default function CarDetails() {
     fuel: "Diesel",
     mileage: 45230,
     status: "available" as const,
+    currentLocation: "Vilnius, Konstitucijos pr. 12",
     images: [
       "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1617531653520-bd788c51e3e5?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1617531653572-5f6c7f6e6e6e?w=800&h=600&fit=crop",
+    ],
+    statistics: {
+      totalRentals: 47,
+      totalEarnings: 4250,
+      avgDuration: 4.2,
+      utilizationRate: 78,
+      thisMonthEarnings: 580,
+      lastMonthEarnings: 720,
+    },
+    recentRentals: [
+      { id: 1, clientName: "Jonas Jonaitis", startDate: "2024-12-01", endDate: "2024-12-05", amount: 180 },
+      { id: 2, clientName: "Petras Petraitis", startDate: "2024-11-20", endDate: "2024-11-25", amount: 200 },
+      { id: 3, clientName: "UAB Transportas", startDate: "2024-11-10", endDate: "2024-11-15", amount: 175 },
+      { id: 4, clientName: "Ona Onaitė", startDate: "2024-10-28", endDate: "2024-11-02", amount: 225 },
+    ],
+    upcomingReservations: [
+      { id: 1, startDate: "2024-12-15", endDate: "2024-12-18", clientName: "Marius Marijonas" },
+      { id: 2, startDate: "2024-12-22", endDate: "2024-12-28", clientName: "UAB Kelionės" },
+    ],
+    documents: [
+      { id: 1, name: "Civilinis draudimas", type: "insurance", expiresAt: "2025-03-15", fileUrl: "#" },
+      { id: 2, name: "Kasko draudimas", type: "insurance", expiresAt: "2025-06-20", fileUrl: "#" },
+      { id: 3, name: "Registracijos dokumentai", type: "registration", fileUrl: "#" },
+      { id: 4, name: "Techninė apžiūra", type: "inspection", expiresAt: "2025-02-10", fileUrl: "#" },
     ],
     insurance: {
       liability: { expiresAt: "2025-03-15", daysLeft: 104 },
@@ -102,6 +137,7 @@ export default function CarDetails() {
   };
 
   const [mainImage, setMainImage] = React.useState(0);
+  const [calendarWeekOffset, setCalendarWeekOffset] = React.useState(0);
 
   const severityConfig = {
     minor: { label: "Nedidelis", className: "bg-info/10 text-info border-info/20" },
@@ -116,10 +152,42 @@ export default function CarDetails() {
     maintenance: { label: "Aptarnavimas", icon: Package },
   };
 
+  // Generate calendar days for mini calendar (2 weeks)
+  const generateCalendarDays = () => {
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() + (calendarWeekOffset * 7));
+    
+    const days = [];
+    for (let i = 0; i < 14; i++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const reservation = car.upcomingReservations.find(r => {
+        const start = new Date(r.startDate);
+        const end = new Date(r.endDate);
+        return date >= start && date <= end;
+      });
+      
+      days.push({
+        date,
+        dateStr,
+        dayNumber: date.getDate(),
+        dayName: date.toLocaleDateString('lt-LT', { weekday: 'short' }),
+        isToday: dateStr === today.toISOString().split('T')[0],
+        reservation,
+      });
+    }
+    return days;
+  };
+
+  const calendarDays = generateCalendarDays();
+
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      {/* Header with Quick Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
           <Button
             variant="ghost"
@@ -139,16 +207,83 @@ export default function CarDetails() {
             <p className="text-sm sm:text-base text-muted-foreground mt-1">
               {car.plate} • VIN: {car.vin}
             </p>
+            <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4 text-primary" />
+              <span>{car.currentLocation}</span>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Button variant="outline" size="icon" className="hidden sm:flex" onClick={() => navigate(`/cars/${id}/edit`)}>
+        
+        {/* Quick Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap sm:flex-nowrap">
+          <Button className="gap-2 flex-1 sm:flex-none">
+            <Play className="h-4 w-4" />
+            <span className="hidden sm:inline">Pradėti nuomą</span>
+            <span className="sm:hidden">Nuomoti</span>
+          </Button>
+          <Button variant="outline" className="gap-2 flex-1 sm:flex-none">
+            <CalendarPlus className="h-4 w-4" />
+            <span className="hidden sm:inline">Rezervuoti</span>
+            <span className="sm:hidden">Rezerv.</span>
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => navigate(`/cars/${id}/edit`)}>
             <Edit className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="hidden sm:flex text-destructive hover:text-destructive">
+          <Button variant="outline" size="icon" className="text-destructive hover:text-destructive">
             <Trash className="h-4 w-4" />
           </Button>
         </div>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-primary/20 rounded-xl">
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Nuomų</p>
+              <p className="text-xl font-bold">{car.statistics.totalRentals}</p>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="p-4 bg-gradient-to-br from-success/10 to-success/5 border-success/20">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-success/20 rounded-xl">
+              <Euro className="h-5 w-5 text-success" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Uždirbta</p>
+              <p className="text-xl font-bold">€{car.statistics.totalEarnings}</p>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="p-4 bg-gradient-to-br from-info/10 to-info/5 border-info/20">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-info/20 rounded-xl">
+              <Clock className="h-5 w-5 text-info" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Vid. trukmė</p>
+              <p className="text-xl font-bold">{car.statistics.avgDuration}d.</p>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="p-4 bg-gradient-to-br from-warning/10 to-warning/5 border-warning/20">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-warning/20 rounded-xl">
+              <Gauge className="h-5 w-5 text-warning" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Užimtumas</p>
+              <p className="text-xl font-bold">{car.statistics.utilizationRate}%</p>
+            </div>
+          </div>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -182,6 +317,66 @@ export default function CarDetails() {
                   />
                 </button>
               ))}
+            </div>
+          </Card>
+
+          {/* Mini Calendar */}
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-card to-card/50">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                Užimtumas
+              </h2>
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8"
+                  onClick={() => setCalendarWeekOffset(prev => prev - 1)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8"
+                  onClick={() => setCalendarWeekOffset(prev => prev + 1)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+              {calendarDays.slice(0, 7).map((day, i) => (
+                <div key={i} className="text-center">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 uppercase">{day.dayName}</p>
+                </div>
+              ))}
+              {calendarDays.map((day, i) => (
+                <div
+                  key={day.dateStr}
+                  className={cn(
+                    "aspect-square rounded-lg flex items-center justify-center text-xs sm:text-sm font-medium transition-all cursor-pointer",
+                    day.isToday && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                    day.reservation
+                      ? "bg-primary/20 text-primary hover:bg-primary/30"
+                      : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
+                  )}
+                  title={day.reservation ? `${day.reservation.clientName}` : "Laisva"}
+                >
+                  {day.dayNumber}
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded bg-primary/20"></div>
+                <span>Rezervuota</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded bg-muted/30"></div>
+                <span>Laisva</span>
+              </div>
             </div>
           </Card>
 
@@ -379,6 +574,62 @@ export default function CarDetails() {
 
         {/* Right Column */}
         <div className="space-y-4 sm:space-y-6">
+          {/* Monthly Earnings Comparison */}
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-card to-card/50">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Mėnesio pajamos
+            </h2>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-xl">
+                <span className="text-sm text-muted-foreground">Šį mėnesį</span>
+                <span className="text-lg font-bold text-success">€{car.statistics.thisMonthEarnings}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-xl">
+                <span className="text-sm text-muted-foreground">Praėjusį mėnesį</span>
+                <span className="text-lg font-bold">€{car.statistics.lastMonthEarnings}</span>
+              </div>
+              <div className="pt-2 border-t border-border/50">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Pokytis</span>
+                  <span className={cn(
+                    "text-sm font-semibold",
+                    car.statistics.thisMonthEarnings >= car.statistics.lastMonthEarnings ? "text-success" : "text-destructive"
+                  )}>
+                    {car.statistics.thisMonthEarnings >= car.statistics.lastMonthEarnings ? "+" : ""}
+                    {Math.round(((car.statistics.thisMonthEarnings - car.statistics.lastMonthEarnings) / car.statistics.lastMonthEarnings) * 100)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Recent Rentals */}
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-card to-card/50">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Paskutinės nuomos
+            </h2>
+            <div className="space-y-3">
+              {car.recentRentals.map((rental) => (
+                <div
+                  key={rental.id}
+                  className="p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-smooth cursor-pointer"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{rental.clientName}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {rental.startDate} – {rental.endDate}
+                      </p>
+                    </div>
+                    <span className="text-sm font-semibold text-primary">€{rental.amount}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
           {/* Pricing */}
           <Card className="p-4 sm:p-6 bg-gradient-to-br from-card to-card/50">
             <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
@@ -399,6 +650,32 @@ export default function CarDetails() {
                     <span className="text-lg font-bold text-primary">€{tier.price}</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">už dieną</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Documents */}
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-card to-card/50">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Dokumentai
+            </h2>
+            <div className="space-y-2">
+              {car.documents.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-smooth group"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{doc.name}</p>
+                    {doc.expiresAt && (
+                      <p className="text-xs text-muted-foreground">Iki: {doc.expiresAt}</p>
+                    )}
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 opacity-50 group-hover:opacity-100">
+                    <Download className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>
@@ -477,6 +754,3 @@ export default function CarDetails() {
     </div>
   );
 }
-
-// Import React at the top
-import * as React from "react";
