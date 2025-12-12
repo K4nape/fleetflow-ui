@@ -234,7 +234,7 @@ export default function Cars() {
             
             return (
               <Card key={car.id} className="overflow-hidden bg-gradient-to-br from-card to-card/50 hover:shadow-smooth-lg transition-smooth">
-                <div className="p-4 flex gap-4">
+                <div className="p-4 flex gap-4 items-stretch">
                   {/* Car Image with Location Badge */}
                   <div className="relative flex-shrink-0">
                     <img
@@ -273,30 +273,7 @@ export default function Cars() {
                           <span>{car.mileage.toLocaleString()} km</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <StatusBadge status={car.status} />
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 transition-smooth hover:bg-accent/50">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-popover">
-                            <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate(`/cars/${car.id}`)}>
-                              <Eye className="h-4 w-4" />
-                              Peržiūrėti
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2 cursor-pointer">
-                              <Edit className="h-4 w-4" />
-                              Redaguoti
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2 text-destructive cursor-pointer">
-                              <Trash className="h-4 w-4" />
-                              Ištrinti
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                      <StatusBadge status={car.status} />
                     </div>
 
                     {/* Stats Row */}
@@ -427,6 +404,31 @@ export default function Cars() {
                         </TooltipContent>
                       </Tooltip>
                     )}
+                  </div>
+
+                  {/* Actions Menu - Far Right */}
+                  <div className="flex-shrink-0 flex items-center border-l border-border/30 pl-4 ml-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 transition-smooth hover:bg-accent/50">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-popover">
+                        <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate(`/cars/${car.id}`)}>
+                          <Eye className="h-4 w-4" />
+                          Peržiūrėti
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="gap-2 cursor-pointer">
+                          <Edit className="h-4 w-4" />
+                          Redaguoti
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="gap-2 text-destructive cursor-pointer">
+                          <Trash className="h-4 w-4" />
+                          Ištrinti
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </Card>
