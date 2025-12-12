@@ -257,23 +257,20 @@ export default function Cars() {
                   </div>
 
                   {/* Main Info */}
-                  <div className="flex-1 min-w-0 space-y-3">
+                  <div className="flex-1 min-w-0">
                     {/* Header Row */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-lg truncate">{car.brand} {car.model}</h3>
-                          <span className="text-xs font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">{car.plate}</span>
-                        </div>
-                        <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                          <span>{car.year}</span>
-                          <span>•</span>
-                          <span>{car.fuel}</span>
-                          <span>•</span>
-                          <span>{car.mileage.toLocaleString()} km</span>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-lg truncate">{car.brand} {car.model}</h3>
+                      <span className="text-xs font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded flex-shrink-0">{car.plate}</span>
                       <StatusBadge status={car.status} />
+                    </div>
+                    
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
+                      <span>{car.year}</span>
+                      <span>•</span>
+                      <span>{car.fuel}</span>
+                      <span>•</span>
+                      <span>{car.mileage.toLocaleString()} km</span>
                     </div>
 
                     {/* Stats Row */}
@@ -312,13 +309,10 @@ export default function Cars() {
                       {/* Service Progress */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-center gap-2 cursor-help min-w-[100px]">
+                          <div className="flex items-center gap-2 cursor-help">
                             <Wrench className="h-3.5 w-3.5 text-muted-foreground" />
-                            <Progress 
-                              value={serviceProgress.progress} 
-                              className="h-1.5 flex-1"
-                            />
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">{serviceProgress.remaining.toLocaleString()} km</span>
+                            <Progress value={serviceProgress.progress} className="h-1.5 w-16" />
+                            <span className="text-xs text-muted-foreground">{serviceProgress.remaining.toLocaleString()} km</span>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs">
@@ -360,57 +354,56 @@ export default function Cars() {
                           </TooltipContent>
                         </Tooltip>
                       </div>
+
+                      {/* Next Reservation - inline */}
+                      <div className="w-px h-4 bg-border/50" />
+                      
+                      {car.nextReservation ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1.5 cursor-help text-primary">
+                              <Calendar className="h-3.5 w-3.5" />
+                              <span className="text-xs font-medium">{car.nextReservation.date}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            <p className="font-medium">Artimiausia rezervacija</p>
+                            <p>{car.nextReservation.client}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span className="text-xs">Laisva</span>
+                        </div>
+                      )}
+
+                      {/* Idle Days - only when relevant */}
+                      {idleDays !== null && car.status === "available" && idleDays > 3 && (
+                        <>
+                          <div className="w-px h-4 bg-border/50" />
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className={`flex items-center gap-1.5 cursor-help ${idleDays > 7 ? 'text-warning' : 'text-muted-foreground'}`}>
+                                <Clock className="h-3.5 w-3.5" />
+                                <span className="text-xs font-medium">{idleDays}d</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">
+                              <p className="font-medium">Stovi nenaudota</p>
+                              <p>Nuo {car.lastRentalEnd}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </>
+                      )}
                     </div>
                   </div>
 
-                  {/* Right Side Info */}
-                  <div className="flex-shrink-0 text-right space-y-2 min-w-[140px]">
-                    {/* Next Reservation */}
-                    {car.nextReservation ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-primary/10 text-primary rounded-lg text-xs cursor-help">
-                            <Calendar className="h-3 w-3" />
-                            <span className="font-medium">{car.nextReservation.date}</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="left" className="text-xs">
-                          <p className="font-medium">Artimiausia rezervacija</p>
-                          <p>{car.nextReservation.client}</p>
-                          <p className="text-muted-foreground">{car.nextReservation.date}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-muted/50 text-muted-foreground rounded-lg text-xs">
-                        <Calendar className="h-3 w-3" />
-                        <span>Nėra rezervacijų</span>
-                      </div>
-                    )}
-
-                    {/* Idle Days */}
-                    {idleDays !== null && car.status === "available" && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs cursor-help ${
-                            idleDays > 7 ? 'bg-warning/10 text-warning' : 'bg-muted/50 text-muted-foreground'
-                          }`}>
-                            <Clock className="h-3 w-3" />
-                            <span className="font-medium">Stovi {idleDays}d</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="left" className="text-xs">
-                          <p className="font-medium">Paskutinė nuoma baigėsi</p>
-                          <p>{car.lastRentalEnd}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-
                   {/* Actions Menu - Far Right */}
-                  <div className="flex-shrink-0 flex items-center border-l border-border/30 pl-4 ml-2">
+                  <div className="flex-shrink-0 flex items-center self-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 transition-smooth hover:bg-accent/50">
+                        <Button variant="ghost" size="icon" className="h-9 w-9 transition-smooth hover:bg-accent/50 rounded-full">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
