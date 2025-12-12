@@ -262,7 +262,6 @@ export default function Cars() {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold text-lg truncate">{car.brand} {car.model}</h3>
                       <span className="text-xs font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded flex-shrink-0">{car.plate}</span>
-                      <StatusBadge status={car.status} />
                     </div>
                     
                     <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
@@ -374,7 +373,7 @@ export default function Cars() {
                       ) : (
                         <div className="flex items-center gap-1.5 text-muted-foreground">
                           <Calendar className="h-3.5 w-3.5" />
-                          <span className="text-xs">Laisva</span>
+                          <span className="text-xs">Nėra</span>
                         </div>
                       )}
 
@@ -399,11 +398,12 @@ export default function Cars() {
                     </div>
                   </div>
 
-                  {/* Actions Menu - Far Right */}
-                  <div className="flex-shrink-0 flex items-center self-center">
+                  {/* Right Side - Status & Actions */}
+                  <div className="flex-shrink-0 flex items-center gap-3 self-center">
+                    <StatusBadge status={car.status} />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 transition-smooth hover:bg-accent/50 rounded-full">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 transition-smooth hover:bg-accent/50 rounded-full">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
