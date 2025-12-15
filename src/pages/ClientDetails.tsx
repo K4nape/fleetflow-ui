@@ -19,16 +19,29 @@ import {
   Star,
   CreditCard,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  IdCard,
+  Copy,
+  Users,
+  ChevronRight
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface Rental {
   id: string;
+  contractNumber: string;
   carName: string;
+  licensePlate: string;
   startDate: string;
   endDate: string;
   price: number;
-  status: "active" | "completed" | "cancelled";
+  status: "active" | "completed" | "cancelled" | "draft";
+}
+
+interface DriverLicense {
+  number: string;
+  issueDate: string;
+  expiryDate: string;
 }
 
 interface Client {
@@ -37,16 +50,24 @@ interface Client {
   name: string;
   email: string;
   phone: string;
-  address: string;
+  address: {
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
+  birthDate?: string;
   registrationDate: string;
   totalRentals: number;
   totalSpent: number;
+  referredClients: number;
+  referralCode: string;
   activeRentals: number;
   status: "active" | "inactive" | "vip";
   companyCode?: string;
   vatCode?: string;
   personalCode?: string;
-  driverLicense?: string;
+  driverLicense?: DriverLicense;
   notes?: string;
   rentals: Rental[];
 }
@@ -54,169 +75,164 @@ interface Client {
 const mockClient: Client = {
   id: "1",
   type: "individual",
-  name: "Jonas Jonaitis",
-  email: "jonas@email.lt",
-  phone: "+370 612 34567",
-  address: "Gedimino pr. 1, Vilnius",
-  registrationDate: "2023-05-15",
-  totalRentals: 12,
-  totalSpent: 3450,
-  activeRentals: 1,
-  status: "vip",
-  personalCode: "39001011234",
-  driverLicense: "LT12345678",
-  notes: "Patikimas klientas, visada grąžina automobilius laiku ir švariai.",
+  name: "Dovydas Kazlauskas",
+  email: "dovydas.kazlauskas@example.com",
+  phone: "+37062345678",
+  address: {
+    street: "Klaipėdos g. 8",
+    city: "Klaipėda",
+    postalCode: "91234",
+    country: "LT"
+  },
+  birthDate: "1991-11-10",
+  registrationDate: "2025-12-01",
+  totalRentals: 0,
+  totalSpent: 0,
+  referredClients: 0,
+  referralCode: "XUHWLHQ3",
+  activeRentals: 0,
+  status: "active",
+  personalCode: "39134567890",
+  driverLicense: {
+    number: "LT345678",
+    issueDate: "2015-09-20",
+    expiryDate: "2035-09-20"
+  },
+  notes: undefined,
   rentals: [
-    { id: "1", carName: "BMW 320d", startDate: "2024-12-10", endDate: "2024-12-20", price: 650, status: "active" },
-    { id: "2", carName: "Audi A4", startDate: "2024-11-01", endDate: "2024-11-10", price: 540, status: "completed" },
-    { id: "3", carName: "VW Golf", startDate: "2024-09-15", endDate: "2024-09-20", price: 280, status: "completed" },
-    { id: "4", carName: "Mercedes C200", startDate: "2024-08-01", endDate: "2024-08-15", price: 890, status: "completed" },
-    { id: "5", carName: "Toyota Camry", startDate: "2024-06-10", endDate: "2024-06-15", price: 320, status: "cancelled" },
+    { 
+      id: "1", 
+      contractNumber: "CR-2025-0007",
+      carName: "Volkswagen Golf", 
+      licensePlate: "ABC123",
+      startDate: "2025-12-19", 
+      endDate: "2025-12-27", 
+      price: 240, 
+      status: "draft" 
+    },
   ]
 };
 
-const getStatusBadge = (status: Client["status"]) => {
-  switch (status) {
-    case "vip":
-      return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">VIP Klientas</Badge>;
-    case "active":
-      return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Aktyvus</Badge>;
-    case "inactive":
-      return <Badge className="bg-muted text-muted-foreground">Neaktyvus</Badge>;
-  }
+const getClientTypeBadge = (type: Client["type"]) => {
+  return type === "company" 
+    ? <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">Juridinis asmuo</Badge>
+    : <Badge className="bg-primary/20 text-primary border-primary/30">Fizinis asmuo</Badge>;
 };
 
 const getRentalStatusBadge = (status: Rental["status"]) => {
   switch (status) {
     case "active":
-      return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Aktyvi</Badge>;
+      return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Active</Badge>;
     case "completed":
-      return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Baigta</Badge>;
+      return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Completed</Badge>;
     case "cancelled":
-      return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Atšaukta</Badge>;
+      return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Cancelled</Badge>;
+    case "draft":
+      return <Badge className="bg-muted text-muted-foreground border-border">Draft</Badge>;
   }
+};
+
+const isLicenseExpiringSoon = (expiryDate: string) => {
+  const expiry = new Date(expiryDate);
+  const now = new Date();
+  const monthsUntilExpiry = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
+  return monthsUntilExpiry <= 6 && monthsUntilExpiry > 0;
+};
+
+const isLicenseExpired = (expiryDate: string) => {
+  return new Date(expiryDate) < new Date();
 };
 
 export default function ClientDetails() {
   const { id } = useParams();
-  const client = mockClient; // In real app, fetch by id
+  const client = mockClient;
 
-  const avgRentalValue = client.totalRentals > 0 ? Math.round(client.totalSpent / client.totalRentals) : 0;
-  const completedRentals = client.rentals.filter(r => r.status === "completed").length;
+  const copyReferralCode = () => {
+    navigator.clipboard.writeText(client.referralCode);
+    toast.success("Referral kodas nukopijuotas!");
+  };
+
+  const clientSince = new Date(client.registrationDate).toLocaleDateString("lt-LT", { year: "numeric", month: "2-digit" });
 
   return (
     <div className="space-y-6">
-      {/* Back Button */}
-      <Link to="/clients">
-        <Button variant="ghost" className="gap-2 hover:bg-accent/50">
-          <ArrowLeft className="h-4 w-4" />
-          Grįžti į sąrašą
-        </Button>
-      </Link>
-
-      {/* Header with Background */}
-      <div className="relative rounded-2xl overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" />
-        <div className="relative p-6 lg:p-8">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-            {/* Avatar */}
-            <div className={`h-20 w-20 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-              client.type === "company" ? "bg-amber-500/20" : "bg-primary/20"
-            }`}>
-              {client.type === "company" ? (
-                <Building2 className="h-10 w-10 text-amber-500" />
-              ) : (
-                <User className="h-10 w-10 text-primary" />
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-3 mb-2">
-                <h1 className="text-2xl lg:text-3xl font-display font-bold">{client.name}</h1>
-                {getStatusBadge(client.status)}
-              </div>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground">
-                <span className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  {client.email}
-                </span>
-                <span className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  {client.phone}
-                </span>
-                <span className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  {client.address}
-                </span>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2">
-              <Button variant="outline" className="gap-2">
-                <Edit className="h-4 w-4" />
-                Redaguoti
-              </Button>
-              <Button className="gap-2">
-                <Car className="h-4 w-4" />
-                Nauja nuoma
-              </Button>
-            </div>
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className={`h-14 w-14 rounded-full flex items-center justify-center text-xl font-bold ${
+            client.type === "company" ? "bg-amber-500/20 text-amber-500" : "bg-primary/20 text-primary"
+          }`}>
+            {client.name.charAt(0)}
           </div>
+          <div>
+            <h1 className="text-2xl font-display font-bold">{client.name}</h1>
+            {getClientTypeBadge(client.type)}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button className="gap-2">
+            <Edit className="h-4 w-4" />
+            Redaguoti klientą
+          </Button>
+          <Link to="/clients">
+            <Button variant="outline" className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Grįžti į sąrašą
+            </Button>
+          </Link>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-lg transition-all duration-300">
+        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Car className="h-5 w-5 text-primary" />
+              <div className="p-2 rounded-lg bg-muted">
+                <Car className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
+                <p className="text-xs text-muted-foreground">Nuomų skaičius</p>
                 <p className="text-2xl font-bold">{client.totalRentals}</p>
-                <p className="text-xs text-muted-foreground">Viso nuomų</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-lg transition-all duration-300">
+        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-emerald-500/10">
                 <Euro className="h-5 w-5 text-emerald-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-emerald-500">€{client.totalSpent.toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground">Išleista viso</p>
+                <p className="text-xs text-muted-foreground">Išleista suma</p>
+                <p className="text-2xl font-bold">€{client.totalSpent.toLocaleString("lt-LT", { minimumFractionDigits: 2 })}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <TrendingUp className="h-5 w-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">€{avgRentalValue}</p>
-                <p className="text-xs text-muted-foreground">Vid. nuomos vertė</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-lg transition-all duration-300">
+        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-amber-500/10">
-                <Star className="h-5 w-5 text-amber-500" />
+                <Users className="h-5 w-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{Math.round((completedRentals / client.totalRentals) * 100)}%</p>
-                <p className="text-xs text-muted-foreground">Užbaigtų nuomų</p>
+                <p className="text-xs text-muted-foreground">Pakviesti klientai</p>
+                <p className="text-2xl font-bold">{client.referredClients}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Calendar className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Klientas nuo</p>
+                <p className="text-2xl font-bold">{clientSince}</p>
               </div>
             </div>
           </CardContent>
@@ -224,128 +240,218 @@ export default function ClientDetails() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left Column - Details */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Left Column - Main Info */}
+        <div className="lg:col-span-2 space-y-6">
           {/* Personal Info */}
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <User className="h-5 w-5 text-primary" />
-                Asmeninė informacija
+                Pagrindinė kliento informacija
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Tipas</p>
-                <p className="font-medium">{client.type === "company" ? "Juridinis asmuo" : "Fizinis asmuo"}</p>
-              </div>
-              {client.personalCode && (
-                <div>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                  <p className="text-xs text-muted-foreground mb-1">Vardas ir pavardė</p>
+                  <p className="font-medium">{client.name}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
                   <p className="text-xs text-muted-foreground mb-1">Asmens kodas</p>
-                  <p className="font-medium">{client.personalCode}</p>
+                  <p className="font-medium">{client.personalCode || "—"}</p>
                 </div>
-              )}
-              {client.driverLicense && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Vairuotojo pažymėjimas</p>
-                  <p className="font-medium">{client.driverLicense}</p>
-                </div>
-              )}
-              {client.companyCode && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Įmonės kodas</p>
-                  <p className="font-medium">{client.companyCode}</p>
-                </div>
-              )}
-              {client.vatCode && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">PVM kodas</p>
-                  <p className="font-medium">{client.vatCode}</p>
-                </div>
-              )}
-              <Separator />
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Registracijos data</p>
-                <p className="font-medium flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  {new Date(client.registrationDate).toLocaleDateString("lt-LT")}
-                </p>
+                {client.birthDate && (
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-1">Gimimo data</p>
+                    <p className="font-medium">{new Date(client.birthDate).toLocaleDateString("lt-LT")}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Notes */}
-          {client.notes && (
+          {/* Contacts */}
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Phone className="h-5 w-5 text-primary" />
+                Kontaktai
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                  <p className="text-xs text-muted-foreground mb-1">Telefonas</p>
+                  <p className="font-medium">{client.phone}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                  <p className="text-xs text-muted-foreground mb-1">El. paštas</p>
+                  <p className="font-medium">{client.email}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-muted/30 border border-border/50 md:col-span-2">
+                  <p className="text-xs text-muted-foreground mb-1">Adresas</p>
+                  <p className="font-medium">
+                    {client.address.street}, {client.address.city} , {client.address.postalCode} , {client.address.country}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Driver License */}
+          {client.driverLicense && (
             <Card className="bg-card/50 backdrop-blur-sm border-border/50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <FileText className="h-5 w-5 text-primary" />
-                  Pastabos
+                  <IdCard className="h-5 w-5 text-primary" />
+                  Vairuotojo pažymėjimas
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">{client.notes}</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-1">Pažymėjimo numeris</p>
+                    <p className="font-medium">{client.driverLicense.number}</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-1">Išdavimo data</p>
+                    <p className="font-medium">{new Date(client.driverLicense.issueDate).toLocaleDateString("lt-LT")}</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-1">Galioja iki</p>
+                    <div className="flex items-center gap-2">
+                      <p className={`font-medium ${
+                        isLicenseExpired(client.driverLicense.expiryDate) 
+                          ? "text-red-500" 
+                          : isLicenseExpiringSoon(client.driverLicense.expiryDate) 
+                            ? "text-amber-500" 
+                            : "text-emerald-500"
+                      }`}>
+                        {new Date(client.driverLicense.expiryDate).toLocaleDateString("lt-LT")}
+                      </p>
+                      {isLicenseExpiringSoon(client.driverLicense.expiryDate) && (
+                        <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">
+                          Netrukus baigsis
+                        </Badge>
+                      )}
+                      {isLicenseExpired(client.driverLicense.expiryDate) && (
+                        <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
+                          Pasibaigęs
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Quick Actions */}
+          {/* Notes */}
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader>
-              <CardTitle className="text-lg">Greiti veiksmai</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText className="h-5 w-5 text-primary" />
+                Pastabos
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <FileText className="h-4 w-4" />
-                Sukurti sutartį
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <CreditCard className="h-4 w-4" />
-                Pridėti mokėjimą
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <Mail className="h-4 w-4" />
-                Siųsti laišką
-              </Button>
+            <CardContent>
+              <p className="text-muted-foreground italic">
+                {client.notes || "Pastabų dar nėra."}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Rentals History */}
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText className="h-5 w-5 text-primary" />
+                Nuomų istorija
+              </CardTitle>
+              <Badge variant="secondary" className="text-xs">
+                {client.rentals.length} sutartys
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              {client.rentals.length === 0 ? (
+                <p className="text-muted-foreground italic text-center py-8">Nuomų istorija tuščia.</p>
+              ) : (
+                <div className="space-y-3">
+                  {client.rentals.map((rental) => (
+                    <div
+                      key={rental.id}
+                      className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer group"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold">{rental.contractNumber}</p>
+                          {getRentalStatusBadge(rental.status)}
+                        </div>
+                        <div className="text-sm text-muted-foreground space-y-0.5">
+                          <p className="flex items-center gap-2">
+                            <Car className="h-3.5 w-3.5" />
+                            {rental.carName} ({rental.licensePlate})
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {new Date(rental.startDate).toLocaleDateString("lt-LT")} → {new Date(rental.endDate).toLocaleDateString("lt-LT")}
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <Euro className="h-3.5 w-3.5" />
+                            {rental.price.toFixed(2)} €
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Column - Rentals */}
-        <div className="lg:col-span-2">
+        {/* Right Column - Sidebar */}
+        <div className="space-y-6">
+          {/* Referral & Trust */}
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Car className="h-5 w-5 text-primary" />
-                Nuomos istorija
+                <Users className="h-5 w-5 text-amber-500" />
+                Referral & Patikimumas
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {client.rentals.map((rental) => (
-                  <div
-                    key={rental.id}
-                    className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+            <CardContent className="space-y-4">
+              <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                <p className="text-xs text-muted-foreground mb-2">Referral kodas</p>
+                <div className="flex items-center justify-between">
+                  <p className="font-mono font-bold text-lg">{client.referralCode}</p>
+                  <Button 
+                    size="sm" 
+                    onClick={copyReferralCode}
+                    className="bg-primary hover:bg-primary/90"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <Car className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{rental.carName}</p>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" />
-                          {new Date(rental.startDate).toLocaleDateString("lt-LT")} - {new Date(rental.endDate).toLocaleDateString("lt-LT")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <p className="font-semibold text-emerald-500">€{rental.price}</p>
-                      {getRentalStatusBadge(rental.status)}
-                    </div>
-                  </div>
-                ))}
+                    Kopijuoti
+                  </Button>
+                </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle className="text-lg">Greitieji veiksmai</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button variant="secondary" className="w-full justify-start gap-2">
+                <Mail className="h-4 w-4" />
+                Siųsti el. laišką
+              </Button>
+              <Button variant="secondary" className="w-full justify-start gap-2">
+                <Phone className="h-4 w-4" />
+                Skambinti
+              </Button>
             </CardContent>
           </Card>
         </div>
