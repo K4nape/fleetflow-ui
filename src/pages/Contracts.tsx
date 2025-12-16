@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
-import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
 import { lt } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -476,7 +475,7 @@ export default function Contracts() {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="flex items-center gap-1.5 cursor-help">
-                            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                            <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
                             <span className="text-xs">{formatDate(contract.startDate)}</span>
                             <ArrowRight className="h-3 w-3 text-muted-foreground" />
                             <span className="text-xs">{formatDate(contract.endDate)}</span>
@@ -495,28 +494,14 @@ export default function Contracts() {
 
                       <div className="w-px h-4 bg-border/50" />
 
-                      {/* Enhanced Payment Progress */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-2 cursor-help">
-                            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full ${paymentConfig.bg}`}>
-                              <Euro className={`h-3 w-3 ${paymentConfig.color}`} />
-                              <span className={`text-xs font-medium ${paymentConfig.color}`}>
-                                {formatCurrency(contract.paidAmount)} / {formatCurrency(contract.totalAmount)}
-                              </span>
-                            </div>
-                            <div className="relative w-20">
-                              <Progress value={paymentProgress} className="h-2" />
-                              <span className="absolute right-0 -top-4 text-[10px] font-medium text-muted-foreground">{paymentProgress}%</span>
-                            </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs">
-                          <p className="font-medium">Mokėjimo statusas</p>
-                          <p>{paymentConfig.label} • {paymentProgress}%</p>
-                          <p className="text-muted-foreground mt-1">Depozitas: {contract.depositPaid ? '✓' : '✗'} {formatCurrency(contract.deposit)}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      {/* Payment Status - Simplified */}
+                      <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full ${paymentConfig.bg}`}>
+                        <Euro className={`h-3 w-3 ${paymentConfig.color}`} />
+                        <span className={`text-xs font-medium ${paymentConfig.color}`}>
+                          {formatCurrency(contract.paidAmount)} / {formatCurrency(contract.totalAmount)}
+                        </span>
+                        <span className={`text-[10px] ${paymentConfig.color}`}>({paymentConfig.label})</span>
+                      </div>
 
                       <div className="w-px h-4 bg-border/50" />
 
@@ -624,7 +609,6 @@ export default function Contracts() {
         {filteredContracts.map((contract) => {
           const statusConfig = getStatusConfig(contract.status);
           const paymentConfig = getPaymentStatusConfig(contract.paymentStatus);
-          const paymentProgress = getPaymentProgress(contract.paidAmount, contract.totalAmount);
           const StatusIcon = statusConfig.icon;
 
           return (
@@ -657,29 +641,17 @@ export default function Contracts() {
                   </div>
                 </div>
 
-                {/* Enhanced Payment Progress */}
-                <div className="mb-3">
-                  <div className="flex items-center justify-between mb-1">
+                {/* Payment Status - Simplified */}
+                <div className={`flex items-center justify-between mb-3 px-3 py-2 rounded-lg ${paymentConfig.bg}`}>
+                  <div className="flex items-center gap-2">
+                    <Euro className={`h-4 w-4 ${paymentConfig.color}`} />
                     <span className={`text-sm font-medium ${paymentConfig.color}`}>
                       {formatCurrency(contract.paidAmount)} / {formatCurrency(contract.totalAmount)}
                     </span>
-                    <span className={`text-xs font-medium ${paymentConfig.color}`}>{paymentProgress}%</span>
                   </div>
-                  <div className="relative">
-                    <Progress value={paymentProgress} className="h-2.5" />
-                    <div 
-                      className="absolute top-0 h-full w-0.5 bg-foreground/30"
-                      style={{ left: `${paymentProgress}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className={`text-xs ${paymentConfig.bg} ${paymentConfig.color} px-1.5 py-0.5 rounded`}>
-                      {paymentConfig.label}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Depozitas: {contract.depositPaid ? '✓' : '✗'} {formatCurrency(contract.deposit)}
-                    </span>
-                  </div>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${paymentConfig.color}`}>
+                    {paymentConfig.label}
+                  </span>
                 </div>
 
                 {/* Quick Actions */}
