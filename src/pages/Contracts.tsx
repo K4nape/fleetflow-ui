@@ -132,23 +132,6 @@ export default function Contracts() {
   };
 
 
-  // Mini calendar data - current month days
-  const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-  
-  const getContractsForDay = (day: number) => {
-    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return contracts.filter(c => {
-      const start = new Date(c.startDate);
-      const end = new Date(c.endDate);
-      const check = new Date(dateStr);
-      return check >= start && check <= end && c.status !== "cancelled";
-    });
-  };
-
   // Helper functions
   const getStatusConfig = (status: ContractStatus) => {
     switch (status) {
@@ -191,7 +174,7 @@ export default function Contracts() {
     return phone.replace(/\s/g, '');
   };
 
-  const weekDays = ['P', 'A', 'T', 'K', 'Pn', 'Š', 'S'];
+  
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-20 lg:pb-0">
@@ -209,115 +192,6 @@ export default function Contracts() {
           <span className="sm:hidden">Nauja</span>
         </Button>
       </div>
-
-      {/* Stats & Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Quick Stats */}
-        <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card className="p-3 sm:p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/20">
-                <FileSignature className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Aktyvios</p>
-                <p className="text-lg sm:text-xl font-bold">{stats.active}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-3 sm:p-4 bg-gradient-to-br from-warning/10 to-warning/5 border-warning/20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-warning/20">
-                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Juodraščiai</p>
-                <p className="text-lg sm:text-xl font-bold">{stats.draft}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-3 sm:p-4 bg-gradient-to-br from-success/10 to-success/5 border-success/20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-success/20">
-                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Pajamos</p>
-                <p className="text-lg sm:text-xl font-bold">{formatCurrency(stats.totalRevenue)}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-3 sm:p-4 bg-gradient-to-br from-destructive/10 to-destructive/5 border-destructive/20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-destructive/20">
-                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Vėluoja</p>
-                <p className="text-lg sm:text-xl font-bold">{stats.overdue}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Mini Calendar */}
-        <Card className="p-3 sm:p-4 bg-gradient-to-br from-card to-card/50">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              {new Date().toLocaleDateString('lt-LT', { month: 'long', year: 'numeric' })}
-            </h3>
-          </div>
-          <div className="grid grid-cols-7 gap-1 text-center">
-            {weekDays.map(day => (
-              <div key={day} className="text-[10px] font-medium text-muted-foreground py-1">{day}</div>
-            ))}
-            {Array.from({ length: (firstDayOfMonth + 6) % 7 }).map((_, i) => (
-              <div key={`empty-${i}`} />
-            ))}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1;
-              const contractsForDay = getContractsForDay(day);
-              const isToday = day === today.getDate();
-              const hasActive = contractsForDay.some(c => c.status === "active");
-              const hasOverdue = contractsForDay.some(c => c.status === "overdue");
-              
-              return (
-                <TooltipProvider key={day}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div 
-                        className={`
-                          text-[10px] py-1 rounded cursor-pointer transition-all
-                          ${isToday ? 'bg-primary text-primary-foreground font-bold' : ''}
-                          ${!isToday && hasOverdue ? 'bg-destructive/20 text-destructive' : ''}
-                          ${!isToday && hasActive && !hasOverdue ? 'bg-success/20 text-success' : ''}
-                          ${!isToday && contractsForDay.length > 0 && !hasActive && !hasOverdue ? 'bg-muted text-muted-foreground' : ''}
-                          hover:ring-1 hover:ring-primary/50
-                        `}
-                      >
-                        {day}
-                        {contractsForDay.length > 0 && !isToday && (
-                          <div className="w-1 h-1 rounded-full bg-current mx-auto mt-0.5" />
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    {contractsForDay.length > 0 && (
-                      <TooltipContent side="top" className="text-xs max-w-[200px]">
-                        <p className="font-medium mb-1">{contractsForDay.length} sutart{contractsForDay.length === 1 ? 'is' : 'ys'}</p>
-                        {contractsForDay.slice(0, 3).map(c => (
-                          <p key={c.id} className="text-muted-foreground truncate">{c.client.name} • {c.car.brand}</p>
-                        ))}
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-              );
-            })}
-          </div>
-        </Card>
-      </div>
-
 
       {/* Quick Filter Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FilterTab)} className="w-full">
