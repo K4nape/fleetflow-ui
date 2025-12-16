@@ -7,9 +7,9 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Plus, Search, FileText, Calendar, Car, User, Euro, 
-  Clock, CheckCircle2, AlertCircle, XCircle, FileSignature,
+  CheckCircle2, AlertCircle, XCircle, FileSignature,
   Download, Eye, MoreVertical, Printer, Send, CreditCard,
-  TrendingUp, ArrowRight, Phone, Mail, BarChart3, PieChart
+  TrendingUp, ArrowRight, Phone, Mail
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +21,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart as RechartsPie, Pie, Cell, Tooltip as RechartsTooltip } from "recharts";
 
 type ContractStatus = "active" | "completed" | "draft" | "cancelled" | "overdue";
 type PaymentStatus = "paid" | "partial" | "pending" | "overdue";
@@ -132,20 +131,6 @@ export default function Contracts() {
     }, 0) / contracts.length),
   };
 
-  // Chart data
-  const monthlyRevenueData = [
-    { month: "Rugs", revenue: 2800 },
-    { month: "Spal", revenue: 3200 },
-    { month: "Lapkr", revenue: 2900 },
-    { month: "Gruod", revenue: 3850 },
-  ];
-
-  const carPopularityData = [
-    { name: "BMW X5", value: 35, color: "hsl(var(--primary))" },
-    { name: "Audi A4", value: 28, color: "hsl(var(--info))" },
-    { name: "Mercedes", value: 22, color: "hsl(var(--success))" },
-    { name: "Tesla", value: 15, color: "hsl(var(--warning))" },
-  ];
 
   // Mini calendar data - current month days
   const today = new Date();
@@ -333,81 +318,6 @@ export default function Contracts() {
         </Card>
       </div>
 
-      {/* Charts Row - Hidden on mobile */}
-      <div className="hidden sm:grid sm:grid-cols-2 gap-4">
-        {/* Monthly Revenue Chart */}
-        <Card className="p-4 bg-gradient-to-br from-card to-card/50">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-primary" />
-              Mėnesinės pajamos
-            </h3>
-            <span className="text-xs text-muted-foreground">Paskutiniai 4 mėn.</span>
-          </div>
-          <div className="h-32">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyRevenueData}>
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
-                <YAxis hide />
-                <RechartsTooltip 
-                  formatter={(value: number) => [formatCurrency(value), 'Pajamos']}
-                  contentStyle={{ 
-                    background: 'hsl(var(--card))', 
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px'
-                  }}
-                />
-                <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        {/* Car Popularity Chart */}
-        <Card className="p-4 bg-gradient-to-br from-card to-card/50">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <PieChart className="h-4 w-4 text-primary" />
-              Populiariausi automobiliai
-            </h3>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="h-28 w-28 flex-shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPie>
-                  <Pie
-                    data={carPopularityData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={25}
-                    outerRadius={45}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {carPopularityData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </RechartsPie>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex-1 space-y-1.5">
-              {carPopularityData.map((car, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs">
-                  <div className="w-2 h-2 rounded-full" style={{ background: car.color }} />
-                  <span className="flex-1 truncate">{car.name}</span>
-                  <span className="font-medium">{car.value}%</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Vid. nuomos trukmė</span>
-            <span className="font-semibold">{stats.avgDuration} dienos</span>
-          </div>
-        </Card>
-      </div>
 
       {/* Quick Filter Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FilterTab)} className="w-full">
