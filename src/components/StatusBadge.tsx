@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
 
-type Status = "available" | "rented" | "in_service" | "reserved" | "draft" | "active" | "completed" | "cancelled";
+type Status = "available" | "rented" | "in_service" | "reserved" | "draft" | "active" | "completed" | "cancelled" | "overdue";
 
 const statusConfig: Record<Status, { label: string; className: string }> = {
   available: { label: "Laisva", className: "bg-success/10 text-success border-success/20" },
@@ -12,14 +13,16 @@ const statusConfig: Record<Status, { label: string; className: string }> = {
   active: { label: "Aktyvi", className: "bg-success/10 text-success border-success/20" },
   completed: { label: "Užbaigta", className: "bg-muted text-muted-foreground border-border" },
   cancelled: { label: "Atšaukta", className: "bg-destructive/10 text-destructive border-destructive/20" },
+  overdue: { label: "Vėluoja", className: "bg-destructive/10 text-destructive border-destructive/20" },
 };
 
 interface StatusBadgeProps {
   status: Status;
   className?: string;
+  children?: ReactNode;
 }
 
-export function StatusBadge({ status, className }: StatusBadgeProps) {
+export function StatusBadge({ status, className, children }: StatusBadgeProps) {
   const config = statusConfig[status];
   
   return (
@@ -27,7 +30,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       variant="outline"
       className={cn("transition-smooth", config.className, className)}
     >
-      {config.label}
+      {children || config.label}
     </Badge>
   );
 }
