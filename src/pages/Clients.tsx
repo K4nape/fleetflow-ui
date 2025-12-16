@@ -300,17 +300,71 @@ export default function Clients() {
         </Card>
 
         {/* Clients List */}
-        <div className="space-y-3">
+        <div className="space-y-3 sm:space-y-3">
           {filteredClients.map((client) => {
             const daysSinceRental = getDaysSinceLastRental(client.lastRentalDate);
             
             return (
               <Card key={client.id} className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card/80 hover:shadow-lg transition-all duration-300">
-                <CardContent className="p-4">
-                  <div className="flex flex-col gap-4">
-                    {/* Top Row - Main Info */}
+                <CardContent className="p-3 sm:p-4">
+                  {/* Mobile Layout */}
+                  <div className="sm:hidden">
+                    <Link to={`/clients/${client.id}`} className="flex items-center gap-3 mb-3">
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        client.type === "company" ? "bg-amber-500/20" : "bg-primary/20"
+                      }`}>
+                        {client.type === "company" ? (
+                          <Building2 className="h-5 w-5 text-amber-500" />
+                        ) : (
+                          <User className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold truncate text-sm">{client.name}</h3>
+                          {getStatusBadge(client.status)}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {client.totalRentals} nuomos · €{client.totalSpent}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    </Link>
+                    {/* Mobile Quick Actions - Touch Friendly */}
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1 h-10 text-xs gap-1.5"
+                        onClick={(e) => handleCall(e, client.phone)}
+                      >
+                        <Phone className="h-4 w-4" />
+                        Skambinti
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1 h-10 text-xs gap-1.5"
+                        onClick={(e) => handleSMS(e, client.phone)}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        SMS
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1 h-10 text-xs gap-1.5"
+                        onClick={(e) => handleEmail(e, client.email)}
+                      >
+                        <Mail className="h-4 w-4" />
+                        El. paštas
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Desktop Layout */}
+                  <div className="hidden sm:flex flex-col gap-4">
                     <Link to={`/clients/${client.id}`} className="flex items-center gap-4 group">
-                      {/* Avatar */}
                       <div className={`h-12 w-12 rounded-full flex items-center justify-center flex-shrink-0 ${
                         client.type === "company" ? "bg-amber-500/20" : "bg-primary/20"
                       }`}>
@@ -320,14 +374,12 @@ export default function Clients() {
                           <User className="h-6 w-6 text-primary" />
                         )}
                       </div>
-
-                      {/* Main Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{client.name}</h3>
                           {getStatusBadge(client.status)}
                           {client.activeRentals > 0 && (
-                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 hidden sm:flex">
+                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
                               {client.activeRentals} aktyvios
                             </Badge>
                           )}
@@ -338,15 +390,13 @@ export default function Clients() {
                             <span className="truncate max-w-[150px]">{client.address}</span>
                           </span>
                           {daysSinceRental && (
-                            <span className="hidden sm:flex items-center gap-1">
+                            <span className="flex items-center gap-1">
                               <Clock className="h-3.5 w-3.5" />
                               Prieš {daysSinceRental} d.
                             </span>
                           )}
                         </div>
                       </div>
-
-                      {/* Stats - Desktop */}
                       <div className="hidden lg:flex items-center gap-6 text-sm">
                         <div className="text-center">
                           <p className="font-semibold">{client.totalRentals}</p>
@@ -357,66 +407,55 @@ export default function Clients() {
                           <p className="text-xs text-muted-foreground">Išleista</p>
                         </div>
                       </div>
-
-                      {/* Arrow */}
-                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all hidden sm:block" />
+                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                     </Link>
-
-                    {/* Bottom Row - Quick Actions */}
                     <div className="flex items-center justify-between border-t border-border/50 pt-3 -mb-1">
-                      {/* Contact Info with Actions */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        {/* Phone Actions */}
-                        <div className="flex items-center">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 px-2 text-muted-foreground hover:text-primary"
-                                onClick={(e) => handleCall(e, client.phone)}
-                              >
-                                <Phone className="h-4 w-4 mr-1.5" />
-                                <span className="text-sm">{client.phone}</span>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Skambinti</TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                onClick={(e) => handleCopyPhone(e, client.phone, client.id)}
-                              >
-                                {copiedId === client.id ? (
-                                  <Check className="h-3.5 w-3.5 text-emerald-500" />
-                                ) : (
-                                  <Copy className="h-3.5 w-3.5" />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Kopijuoti numerį</TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                onClick={(e) => handleSMS(e, client.phone)}
-                              >
-                                <MessageCircle className="h-3.5 w-3.5" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Siųsti SMS</TooltipContent>
-                          </Tooltip>
-                        </div>
-
-                        <span className="text-border hidden sm:block">|</span>
-
-                        {/* Email Action */}
+                      <div className="flex items-center gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 text-muted-foreground hover:text-primary"
+                              onClick={(e) => handleCall(e, client.phone)}
+                            >
+                              <Phone className="h-4 w-4 mr-1.5" />
+                              <span className="text-sm">{client.phone}</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Skambinti</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={(e) => handleCopyPhone(e, client.phone, client.id)}
+                            >
+                              {copiedId === client.id ? (
+                                <Check className="h-3.5 w-3.5 text-emerald-500" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Kopijuoti numerį</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={(e) => handleSMS(e, client.phone)}
+                            >
+                              <MessageCircle className="h-3.5 w-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Siųsti SMS</TooltipContent>
+                        </Tooltip>
+                        <span className="text-border">|</span>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
@@ -426,15 +465,12 @@ export default function Clients() {
                               onClick={(e) => handleEmail(e, client.email)}
                             >
                               <Mail className="h-4 w-4 mr-1.5" />
-                              <span className="text-sm hidden sm:inline">{client.email}</span>
-                              <span className="text-sm sm:hidden">El. paštas</span>
+                              <span className="text-sm">{client.email}</span>
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>Rašyti el. laišką</TooltipContent>
                         </Tooltip>
                       </div>
-
-                      {/* Mobile Stats */}
                       <div className="flex lg:hidden items-center gap-3 text-sm">
                         <span className="text-muted-foreground">{client.totalRentals} nuomos</span>
                         <span className="font-semibold text-emerald-500">€{client.totalSpent}</span>
