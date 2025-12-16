@@ -1,19 +1,24 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  Plus, Search, FileText, Calendar, Car, User, Euro, 
+  Plus, Search, FileText, Calendar as CalendarIcon, Car, User, Euro, 
   CheckCircle2, AlertCircle, XCircle, FileSignature,
   Download, Eye, MoreVertical, Printer, Send, CreditCard,
-  TrendingUp, ArrowRight, Phone, Mail
+  ArrowRight, Phone, Mail, ArrowUpDown, ArrowUp, ArrowDown, X
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
+import { format } from "date-fns";
+import { lt } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +30,8 @@ import {
 type ContractStatus = "active" | "completed" | "draft" | "cancelled" | "overdue";
 type PaymentStatus = "paid" | "partial" | "pending" | "overdue";
 type FilterTab = "all" | "active" | "draft" | "completed" | "overdue";
+type SortField = "date" | "amount" | "client" | "status";
+type SortDirection = "asc" | "desc";
 
 interface Contract {
   id: string;
@@ -59,6 +66,12 @@ interface Contract {
 export default function Contracts() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState<Date>();
+  const [dateTo, setDateTo] = useState<Date>();
+  const [sortField, setSortField] = useState<SortField>("date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
 
   // Mock data
   const contracts: Contract[] = [
@@ -112,10 +125,62 @@ export default function Contracts() {
     },
   ];
 
-  // Filtered contracts
-  const filteredContracts = activeTab === "all" 
-    ? contracts 
-    : contracts.filter(c => c.status === activeTab);
+  // Filtered and sorted contracts
+  const filteredContracts = useMemo(() => {
+    let result = [...contracts];
+
+    // Tab filter
+    if (activeTab !== "all") {
+      result = result.filter(c => c.status === activeTab);
+    }
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(c => 
+        c.contractNumber.toLowerCase().includes(query) ||
+        c.client.name.toLowerCase().includes(query) ||
+        c.car.brand.toLowerCase().includes(query) ||
+        c.car.model.toLowerCase().includes(query) ||
+        c.car.plate.toLowerCase().includes(query)
+      );
+    }
+
+    // Payment filter
+    if (paymentFilter !== "all") {
+      result = result.filter(c => c.paymentStatus === paymentFilter);
+    }
+
+    // Date range filter
+    if (dateFrom) {
+      result = result.filter(c => new Date(c.startDate) >= dateFrom);
+    }
+    if (dateTo) {
+      result = result.filter(c => new Date(c.endDate) <= dateTo);
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case "date":
+          comparison = new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+          break;
+        case "amount":
+          comparison = a.totalAmount - b.totalAmount;
+          break;
+        case "client":
+          comparison = a.client.name.localeCompare(b.client.name);
+          break;
+        case "status":
+          comparison = a.status.localeCompare(b.status);
+          break;
+      }
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    return result;
+  }, [contracts, activeTab, searchQuery, paymentFilter, dateFrom, dateTo, sortField, sortDirection]);
 
   // Stats calculation
   const stats = {
@@ -123,14 +188,7 @@ export default function Contracts() {
     draft: contracts.filter(c => c.status === "draft").length,
     completed: contracts.filter(c => c.status === "completed").length,
     overdue: contracts.filter(c => c.status === "overdue" || c.paymentStatus === "overdue").length,
-    totalRevenue: contracts.filter(c => c.status !== "cancelled").reduce((sum, c) => sum + c.paidAmount, 0),
-    avgDuration: Math.round(contracts.reduce((sum, c) => {
-      const start = new Date(c.startDate);
-      const end = new Date(c.endDate);
-      return sum + Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    }, 0) / contracts.length),
   };
-
 
   // Helper functions
   const getStatusConfig = (status: ContractStatus) => {
@@ -174,7 +232,24 @@ export default function Contracts() {
     return phone.replace(/\s/g, '');
   };
 
-  
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("desc");
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setDateFrom(undefined);
+    setDateTo(undefined);
+    setPaymentFilter("all");
+    setActiveTab("all");
+  };
+
+  const hasActiveFilters = searchQuery || dateFrom || dateTo || paymentFilter !== "all" || activeTab !== "all";
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-20 lg:pb-0">
@@ -186,7 +261,7 @@ export default function Contracts() {
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base lg:text-lg hidden sm:block">Nuomos sutarčių valdymas</p>
         </div>
-        <Button className="shadow-lg flex-shrink-0">
+        <Button className="shadow-lg flex-shrink-0" onClick={() => navigate("/contracts/new")}>
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Nauja sutartis</span>
           <span className="sm:hidden">Nauja</span>
@@ -229,40 +304,113 @@ export default function Contracts() {
         </TabsList>
       </Tabs>
 
-      {/* Search & Filters */}
+      {/* Search, Filters & Sorting */}
       <Card className="p-3 sm:p-4 bg-gradient-to-br from-card to-card/50">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
-          <div className="relative sm:col-span-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Ieškoti pagal numerį, klientą, automobilį..."
-              className="pl-10 bg-background/50 border-border/50 focus:ring-primary/50 rounded-xl text-sm"
-            />
+        <div className="space-y-3">
+          {/* Row 1: Search and Payment filter */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+            <div className="relative sm:col-span-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Ieškoti pagal numerį, klientą, automobilį..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-background/50 border-border/50 focus:ring-primary/50 rounded-xl text-sm"
+              />
+            </div>
+            <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+              <SelectTrigger className="bg-background/50 border-border/50 rounded-xl text-sm">
+                <SelectValue placeholder="Mokėjimas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Visi mokėjimai</SelectItem>
+                <SelectItem value="paid">Apmokėtos</SelectItem>
+                <SelectItem value="partial">Dalinis apmokėjimas</SelectItem>
+                <SelectItem value="pending">Laukia apmokėjimo</SelectItem>
+                <SelectItem value="overdue">Vėluojantys mokėjimai</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Sorting */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="bg-background/50 border-border/50 rounded-xl text-sm justify-between">
+                  <span className="flex items-center gap-2">
+                    <ArrowUpDown className="h-4 w-4" />
+                    <span className="hidden sm:inline">Rikiuoti</span>
+                  </span>
+                  {sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => toggleSort("date")} className={sortField === "date" ? "bg-muted" : ""}>
+                  <CalendarIcon className="h-4 w-4 mr-2" /> Pagal datą
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toggleSort("amount")} className={sortField === "amount" ? "bg-muted" : ""}>
+                  <Euro className="h-4 w-4 mr-2" /> Pagal sumą
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toggleSort("client")} className={sortField === "client" ? "bg-muted" : ""}>
+                  <User className="h-4 w-4 mr-2" /> Pagal klientą
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toggleSort("status")} className={sortField === "status" ? "bg-muted" : ""}>
+                  <FileText className="h-4 w-4 mr-2" /> Pagal statusą
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <Select>
-            <SelectTrigger className="bg-background/50 border-border/50 rounded-xl text-sm">
-              <SelectValue placeholder="Mokėjimas" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Visi</SelectItem>
-              <SelectItem value="paid">Apmokėtos</SelectItem>
-              <SelectItem value="partial">Dalinis apmokėjimas</SelectItem>
-              <SelectItem value="pending">Laukia apmokėjimo</SelectItem>
-              <SelectItem value="overdue">Vėluojantys mokėjimai</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select>
-            <SelectTrigger className="bg-background/50 border-border/50 rounded-xl text-sm">
-              <SelectValue placeholder="Automobilis" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Visi</SelectItem>
-              <SelectItem value="bmw">BMW X5</SelectItem>
-              <SelectItem value="audi">Audi A4</SelectItem>
-              <SelectItem value="mercedes">Mercedes C-Class</SelectItem>
-              <SelectItem value="tesla">Tesla Model 3</SelectItem>
-            </SelectContent>
-          </Select>
+
+          {/* Row 2: Date Range Filter */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted-foreground">Laikotarpis:</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("text-xs bg-background/50", !dateFrom && "text-muted-foreground")}>
+                  <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
+                  {dateFrom ? format(dateFrom, "yyyy-MM-dd", { locale: lt }) : "Nuo"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateFrom}
+                  onSelect={setDateFrom}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+            <span className="text-muted-foreground">—</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("text-xs bg-background/50", !dateTo && "text-muted-foreground")}>
+                  <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
+                  {dateTo ? format(dateTo, "yyyy-MM-dd", { locale: lt }) : "Iki"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateTo}
+                  onSelect={setDateTo}
+                  disabled={(date) => dateFrom ? date < dateFrom : false}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs text-muted-foreground hover:text-destructive">
+                <X className="h-3.5 w-3.5 mr-1" />
+                Išvalyti filtrus
+              </Button>
+            )}
+
+            <div className="flex-1" />
+            <span className="text-xs text-muted-foreground">
+              Rasta: {filteredContracts.length} sutart{filteredContracts.length === 1 ? 'is' : filteredContracts.length < 10 ? 'ys' : 'čių'}
+            </span>
+          </div>
         </div>
       </Card>
 
