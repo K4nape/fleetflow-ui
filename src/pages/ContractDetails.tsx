@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -5,17 +6,39 @@ import {
   ArrowLeft, FileText, Calendar, Car, User, Euro, 
   CheckCircle2, AlertCircle, XCircle, FileSignature,
   Download, Printer, Send, CreditCard, Phone, Mail,
-  MapPin, Clock, Edit, Copy, Shield, MessageSquare
+  MapPin, Clock, Edit, Copy, Shield, MessageSquare,
+  Banknote, Building2, Wallet, CircleDollarSign
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate, useParams } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
+const PAYMENT_METHODS = [
+  { id: "cash", label: "Grynaisiais", icon: Banknote },
+  { id: "card", label: "Kortele", icon: CreditCard },
+  { id: "transfer", label: "Pavedimu", icon: Building2 },
+  { id: "other", label: "Kita", icon: Wallet },
+];
 
 export default function ContractDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [paymentNote, setPaymentNote] = useState("");
 
   // Mock contract data
   const contract = {
@@ -107,7 +130,21 @@ export default function ContractDetails() {
   const StatusIcon = statusConfig.icon;
   const paymentProgress = Math.round((contract.paidAmount / contract.totalAmount) * 100);
 
+  const remainingAmount = (contract.totalAmount + contract.insurance.totalCost + contract.extras.reduce((s, e) => s + e.total, 0)) - contract.paidAmount;
+
+  const handleRegisterPayment = () => {
+    if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
+      toast.error("Įveskite teisingą sumą");
+      return;
+    }
+    toast.success(`Mokėjimas ${formatCurrency(parseFloat(paymentAmount))} užregistruotas`);
+    setPaymentModalOpen(false);
+    setPaymentAmount("");
+    setPaymentNote("");
+  };
+
   return (
+    <>
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-20 lg:pb-0">
       {/* Header */}
       <div className="flex items-center gap-3">
@@ -254,7 +291,7 @@ export default function ContractDetails() {
                 <CreditCard className="h-5 w-5 text-primary" />
                 Mokėjimų istorija
               </h3>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setPaymentModalOpen(true)}>
                 <CreditCard className="h-4 w-4 mr-2" /> Registruoti mokėjimą
               </Button>
             </div>
@@ -433,5 +470,117 @@ export default function ContractDetails() {
         </div>
       </div>
     </div>
+
+    {/* Payment Registration Modal */}
+    <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="p-2 rounded-full bg-primary/10">
+              <CircleDollarSign className="h-5 w-5 text-primary" />
+            </div>
+            Registruoti mokėjimą
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-5 pt-2">
+          {/* Amount Input */}
+          <div className="space-y-2">
+            <Label htmlFor="amount">Suma</Label>
+            <div className="relative">
+              <Input
+                id="amount"
+                type="number"
+                placeholder="0.00"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                className="pl-10 text-lg h-12 font-semibold"
+              />
+              <Euro className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            </div>
+            {remainingAmount > 0 && (
+              <button 
+                type="button"
+                onClick={() => setPaymentAmount(remainingAmount.toString())}
+                className="text-xs text-primary hover:underline"
+              >
+                Likusi suma: {formatCurrency(remainingAmount)}
+              </button>
+            )}
+          </div>
+
+          {/* Payment Method Selection */}
+          <div className="space-y-2">
+            <Label>Mokėjimo būdas</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {PAYMENT_METHODS.map((method) => {
+                const Icon = method.icon;
+                const isSelected = paymentMethod === method.id;
+                return (
+                  <button
+                    key={method.id}
+                    type="button"
+                    onClick={() => setPaymentMethod(method.id)}
+                    className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                      isSelected 
+                        ? 'border-primary bg-primary/5 text-primary' 
+                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                    }`}
+                  >
+                    <Icon className={`h-4 w-4 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className="text-sm font-medium">{method.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Date Input */}
+          <div className="space-y-2">
+            <Label htmlFor="date">Data</Label>
+            <Input
+              id="date"
+              type="date"
+              value={paymentDate}
+              onChange={(e) => setPaymentDate(e.target.value)}
+              className="h-11"
+            />
+          </div>
+
+          {/* Note Input */}
+          <div className="space-y-2">
+            <Label htmlFor="note">Pastaba (neprivaloma)</Label>
+            <Textarea
+              id="note"
+              placeholder="Pvz.: Avansas, likusi suma..."
+              value={paymentNote}
+              onChange={(e) => setPaymentNote(e.target.value)}
+              rows={2}
+              className="resize-none"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-2">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => setPaymentModalOpen(false)}
+            >
+              Atšaukti
+            </Button>
+            <Button 
+              className="flex-1"
+              onClick={handleRegisterPayment}
+              disabled={!paymentAmount || parseFloat(paymentAmount) <= 0}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Registruoti
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
