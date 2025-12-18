@@ -39,6 +39,8 @@ export default function ContractDetails() {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
   const [paymentNote, setPaymentNote] = useState("");
+  const [mileageEnd, setMileageEnd] = useState<number | null>(null);
+  const [mileageEndInput, setMileageEndInput] = useState("");
 
   // Mock contract data
   const contract = {
@@ -202,20 +204,52 @@ export default function ContractDetails() {
             </div>
             <div className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
-                <p className="text-xs text-muted-foreground">VIN</p>
+                <p className="text-xs text-muted-foreground mb-1">VIN</p>
                 <p className="text-sm font-mono truncate">{contract.car.vin}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Rida pradžioje</p>
-                <p className="text-sm font-medium">{contract.car.mileageStart.toLocaleString()} km</p>
+                <p className="text-xs text-muted-foreground mb-1">Rida pradžioje</p>
+                <p className="text-sm font-semibold">{contract.car.mileageStart.toLocaleString()} km</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Rida pabaigoje</p>
-                <p className="text-sm font-medium">{contract.car.mileageEnd ? `${contract.car.mileageEnd.toLocaleString()} km` : '—'}</p>
+                <p className="text-xs text-muted-foreground mb-1">Rida pabaigoje</p>
+                {mileageEnd !== null ? (
+                  <p className="text-sm font-semibold">{mileageEnd.toLocaleString()} km</p>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      placeholder="Įvesti..."
+                      value={mileageEndInput}
+                      onChange={(e) => setMileageEndInput(e.target.value)}
+                      className="h-7 w-24 text-sm"
+                    />
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      className="h-7 px-2"
+                      onClick={() => {
+                        const val = parseInt(mileageEndInput);
+                        if (val && val > contract.car.mileageStart) {
+                          setMileageEnd(val);
+                          toast.success("Rida įrašyta");
+                        } else {
+                          toast.error("Rida turi būti didesnė už pradinę");
+                        }
+                      }}
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Nuvažiuota</p>
-                <p className="text-sm font-medium">{contract.car.mileageEnd ? `${(contract.car.mileageEnd - contract.car.mileageStart).toLocaleString()} km` : '—'}</p>
+                <p className="text-xs text-muted-foreground mb-1">Nuvažiuota</p>
+                {mileageEnd !== null ? (
+                  <p className="text-sm font-semibold text-primary">{(mileageEnd - contract.car.mileageStart).toLocaleString()} km</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">—</p>
+                )}
               </div>
             </div>
           </Card>
