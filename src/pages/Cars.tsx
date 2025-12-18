@@ -1,12 +1,12 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Plus, Search, MoreVertical, Eye, Edit, Trash, Shield, Wrench, MapPin, Star, Calendar, TrendingUp, Clock } from "lucide-react";
+import { Plus, Search, MoreVertical, Eye, Edit, Trash, Shield, Wrench, MapPin, Star, Calendar, TrendingUp, Clock, ChevronLeft, ChevronRight, Fuel, Gauge } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
-import { Progress } from "@/components/ui/progress";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,8 +16,9 @@ import {
 
 export default function Cars() {
   const navigate = useNavigate();
+  const [imageIndexes, setImageIndexes] = useState<Record<number, number>>({});
   
-  // Mock data with extended info
+  // Mock data with extended info and multiple images
   const cars = [
     {
       id: 1,
@@ -28,7 +29,11 @@ export default function Cars() {
       fuel: "Diesel",
       mileage: 45230,
       status: "available" as const,
-      image: "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=100&h=100&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop",
+      ],
       techInspection: "2025-02-15",
       insurance: "2025-08-20",
       location: "office" as const,
@@ -38,6 +43,7 @@ export default function Cars() {
       totalRatings: 24,
       nextReservation: { date: "2024-12-18", client: "Jonas P." },
       lastRentalEnd: "2024-12-08",
+      dailyRate: 89,
     },
     {
       id: 2,
@@ -48,7 +54,10 @@ export default function Cars() {
       fuel: "Petrol",
       mileage: 32100,
       status: "rented" as const,
-      image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=100&h=100&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=400&h=300&fit=crop",
+      ],
       techInspection: "2025-06-10",
       insurance: "2025-12-05",
       location: "client" as const,
@@ -58,6 +67,7 @@ export default function Cars() {
       totalRatings: 18,
       nextReservation: null,
       lastRentalEnd: null,
+      dailyRate: 75,
     },
     {
       id: 3,
@@ -68,7 +78,9 @@ export default function Cars() {
       fuel: "Hybrid",
       mileage: 12500,
       status: "in_service" as const,
-      image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=100&h=100&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=300&fit=crop",
+      ],
       techInspection: "2024-11-30",
       insurance: "2025-03-15",
       location: "service" as const,
@@ -78,6 +90,7 @@ export default function Cars() {
       totalRatings: 12,
       nextReservation: { date: "2024-12-20", client: "UAB Logistika" },
       lastRentalEnd: "2024-12-01",
+      dailyRate: 95,
     },
     {
       id: 4,
@@ -88,7 +101,11 @@ export default function Cars() {
       fuel: "Electric",
       mileage: 8420,
       status: "reserved" as const,
-      image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=100&h=100&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1536700503339-1e4b06520771?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1571127236794-81c0bbfe1ce3?w=400&h=300&fit=crop",
+      ],
       techInspection: "2026-01-20",
       insurance: "2025-09-01",
       location: "office" as const,
@@ -98,8 +115,26 @@ export default function Cars() {
       totalRatings: 8,
       nextReservation: { date: "2024-12-15", client: "Petras K." },
       lastRentalEnd: "2024-12-10",
+      dailyRate: 120,
     },
   ];
+
+  // Image navigation
+  const nextImage = (carId: number, totalImages: number) => {
+    setImageIndexes(prev => ({
+      ...prev,
+      [carId]: ((prev[carId] || 0) + 1) % totalImages
+    }));
+  };
+
+  const prevImage = (carId: number, totalImages: number) => {
+    setImageIndexes(prev => ({
+      ...prev,
+      [carId]: ((prev[carId] || 0) - 1 + totalImages) % totalImages
+    }));
+  };
+
+  const getImageIndex = (carId: number) => imageIndexes[carId] || 0;
 
   // Helper functions
   const getExpirationStatus = (dateString: string) => {
@@ -223,112 +258,156 @@ export default function Cars() {
       </Card>
 
       {/* Cars Grid - Desktop */}
-      <div className="hidden md:grid gap-4">
+      <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4">
         <TooltipProvider>
           {cars.map((car) => {
             const techStatus = getExpirationStatus(car.techInspection);
             const insuranceStatus = getExpirationStatus(car.insurance);
             const locationInfo = getLocationInfo(car.location);
-            const serviceProgress = getServiceProgress(car.mileage, car.nextServiceKm);
             const idleDays = getIdleDays(car.lastRentalEnd);
+            const currentImageIndex = getImageIndex(car.id);
             
             return (
-              <Card key={car.id} className="overflow-hidden bg-gradient-to-br from-card to-card/50 hover:shadow-smooth-lg transition-smooth">
-                <div className="p-4 flex gap-4 items-stretch">
-                  {/* Car Image with Location Badge */}
-                  <div className="relative flex-shrink-0">
-                    <img
-                      src={car.image}
-                      alt={`${car.brand} ${car.model}`}
-                      className="w-24 h-24 rounded-xl object-cover shadow-smooth"
-                    />
-                    {/* Location indicator */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full ${locationInfo.color} flex items-center justify-center shadow-sm cursor-help`}>
-                          <MapPin className="h-3 w-3 text-white" />
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs">
-                        <p className="font-medium">Lokacija</p>
-                        <p>{locationInfo.label}</p>
-                      </TooltipContent>
-                    </Tooltip>
+              <Card 
+                key={car.id} 
+                className="overflow-hidden bg-gradient-to-br from-card to-card/50 hover:shadow-smooth-lg transition-smooth cursor-pointer group"
+                onClick={() => navigate(`/cars/${car.id}`)}
+              >
+                {/* Image Section with Overlay */}
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src={car.images[currentImageIndex]}
+                    alt={`${car.brand} ${car.model}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  
+                  {/* Top Left - Status */}
+                  <div className="absolute top-3 left-3">
+                    <StatusBadge status={car.status} />
                   </div>
-
-                  {/* Main Info */}
-                  <div className="flex-1 min-w-0">
-                    {/* Header Row */}
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-lg truncate">{car.brand} {car.model}</h3>
-                      <span className="text-xs font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded flex-shrink-0">{car.plate}</span>
+                  
+                  {/* Top Right - Location */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div 
+                        className={`absolute top-3 right-3 w-8 h-8 rounded-full ${locationInfo.color} flex items-center justify-center shadow-lg cursor-help backdrop-blur-sm`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MapPin className="h-4 w-4 text-white" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="text-xs">
+                      <p className="font-medium">Lokacija: {locationInfo.label}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  
+                  {/* Image Navigation */}
+                  {car.images.length > 1 && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => { e.stopPropagation(); prevImage(car.id, car.images.length); }}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => { e.stopPropagation(); nextImage(car.id, car.images.length); }}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      
+                      {/* Image Dots */}
+                      <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5">
+                        {car.images.map((_, idx) => (
+                          <div 
+                            key={idx}
+                            className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-3' : 'bg-white/50'}`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  
+                  {/* Bottom Overlay Info */}
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <h3 className="font-bold text-lg text-white drop-shadow-lg">{car.brand} {car.model}</h3>
+                        <div className="flex items-center gap-2 text-white/80 text-sm">
+                          <span className="font-mono bg-white/20 px-1.5 py-0.5 rounded text-xs backdrop-blur-sm">{car.plate}</span>
+                          <span>{car.year}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-white/60 text-xs">nuo</div>
+                        <div className="font-bold text-white text-lg">{car.dailyRate}€<span className="text-sm font-normal">/d</span></div>
+                      </div>
                     </div>
-                    
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
-                      <span>{car.year}</span>
-                      <span>•</span>
-                      <span>{car.fuel}</span>
-                      <span>•</span>
-                      <span>{car.mileage.toLocaleString()} km</span>
-                    </div>
-
-                    {/* Stats Row */}
-                    <div className="flex items-center gap-4 flex-wrap">
-                      {/* Rating */}
+                  </div>
+                </div>
+                
+                {/* Info Section */}
+                <div className="p-3">
+                  {/* Stats Row */}
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    {/* Left: Rating & Revenue */}
+                    <div className="flex items-center gap-3">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1.5 cursor-help">
-                            <div className="flex">{renderStars(car.rating)}</div>
-                            <span className="text-xs font-medium text-muted-foreground">({car.totalRatings})</span>
+                          <div className="flex items-center gap-1 cursor-help" onClick={(e) => e.stopPropagation()}>
+                            <Star className="h-3.5 w-3.5 fill-warning text-warning" />
+                            <span className="text-sm font-semibold">{car.rating}</span>
+                            <span className="text-xs text-muted-foreground">({car.totalRatings})</span>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs">
-                          <p className="font-medium">Klientų įvertinimas</p>
-                          <p>{car.rating} iš 5 ({car.totalRatings} atsiliepimai)</p>
+                          <p>Klientų įvertinimai</p>
                         </TooltipContent>
                       </Tooltip>
-
+                      
                       <div className="w-px h-4 bg-border/50" />
-
-                      {/* Monthly Revenue */}
+                      
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1.5 cursor-help">
+                          <div className="flex items-center gap-1 cursor-help" onClick={(e) => e.stopPropagation()}>
                             <TrendingUp className="h-3.5 w-3.5 text-success" />
                             <span className="text-xs font-semibold text-success">{formatCurrency(car.monthlyRevenue)}</span>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs">
-                          <p className="font-medium">Šio mėnesio pajamos</p>
+                          <p>Šio mėnesio pajamos</p>
                         </TooltipContent>
                       </Tooltip>
-
-                      <div className="w-px h-4 bg-border/50" />
-
-                      {/* Service Progress */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-2 cursor-help">
-                            <Wrench className="h-3.5 w-3.5 text-muted-foreground" />
-                            <Progress value={serviceProgress.progress} className="h-1.5 w-16" />
-                            <span className="text-xs text-muted-foreground">{serviceProgress.remaining.toLocaleString()} km</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs">
-                          <p className="font-medium">Iki serviso</p>
-                          <p>Liko {serviceProgress.remaining.toLocaleString()} km</p>
-                        </TooltipContent>
-                      </Tooltip>
-
-                      <div className="w-px h-4 bg-border/50" />
-
+                    </div>
+                    
+                    {/* Right: Details */}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Fuel className="h-3 w-3" />
+                      <span>{car.fuel}</span>
+                      <span>•</span>
+                      <Gauge className="h-3 w-3" />
+                      <span>{(car.mileage / 1000).toFixed(0)}k</span>
+                    </div>
+                  </div>
+                  
+                  {/* Bottom Row: Documents, Reservation, Actions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
                       {/* Documents */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="flex items-center gap-1 cursor-help">
-                              <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(techStatus.status)}`} />
-                              <Wrench className={`h-3 w-3 ${getStatusTextColor(techStatus.status)}`} />
+                            <div className="flex items-center gap-1 cursor-help" onClick={(e) => e.stopPropagation()}>
+                              <div className={`w-2 h-2 rounded-full ${getStatusColor(techStatus.status)}`} />
+                              <Wrench className={`h-3.5 w-3.5 ${getStatusTextColor(techStatus.status)}`} />
                             </div>
                           </TooltipTrigger>
                           <TooltipContent side="top" className="text-xs">
@@ -340,9 +419,9 @@ export default function Cars() {
                         </Tooltip>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="flex items-center gap-1 cursor-help">
-                              <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(insuranceStatus.status)}`} />
-                              <Shield className={`h-3 w-3 ${getStatusTextColor(insuranceStatus.status)}`} />
+                            <div className="flex items-center gap-1 cursor-help" onClick={(e) => e.stopPropagation()}>
+                              <div className={`w-2 h-2 rounded-full ${getStatusColor(insuranceStatus.status)}`} />
+                              <Shield className={`h-3.5 w-3.5 ${getStatusTextColor(insuranceStatus.status)}`} />
                             </div>
                           </TooltipTrigger>
                           <TooltipContent side="top" className="text-xs">
@@ -353,72 +432,65 @@ export default function Cars() {
                           </TooltipContent>
                         </Tooltip>
                       </div>
-
-                      {/* Next Reservation - inline */}
+                      
                       <div className="w-px h-4 bg-border/50" />
                       
+                      {/* Next Reservation */}
                       {car.nextReservation ? (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="flex items-center gap-1.5 cursor-help text-primary">
+                            <div className="flex items-center gap-1 cursor-help text-primary" onClick={(e) => e.stopPropagation()}>
                               <Calendar className="h-3.5 w-3.5" />
                               <span className="text-xs font-medium">{car.nextReservation.date}</span>
                             </div>
                           </TooltipTrigger>
                           <TooltipContent side="top" className="text-xs">
-                            <p className="font-medium">Artimiausia rezervacija</p>
+                            <p className="font-medium">Rezervacija</p>
                             <p>{car.nextReservation.client}</p>
                           </TooltipContent>
                         </Tooltip>
                       ) : (
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <div className="flex items-center gap-1 text-muted-foreground">
                           <Calendar className="h-3.5 w-3.5" />
-                          <span className="text-xs">Nėra</span>
+                          <span className="text-xs">Laisva</span>
                         </div>
                       )}
-
-                      {/* Idle Days - only when relevant */}
+                      
+                      {/* Idle Days */}
                       {idleDays !== null && car.status === "available" && idleDays > 3 && (
                         <>
                           <div className="w-px h-4 bg-border/50" />
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className={`flex items-center gap-1.5 cursor-help ${idleDays > 7 ? 'text-warning' : 'text-muted-foreground'}`}>
+                              <div className={`flex items-center gap-1 cursor-help ${idleDays > 7 ? 'text-warning' : 'text-muted-foreground'}`} onClick={(e) => e.stopPropagation()}>
                                 <Clock className="h-3.5 w-3.5" />
                                 <span className="text-xs font-medium">{idleDays}d</span>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent side="top" className="text-xs">
-                              <p className="font-medium">Stovi nenaudota</p>
-                              <p>Nuo {car.lastRentalEnd}</p>
+                              <p>Stovi nuo {car.lastRentalEnd}</p>
                             </TooltipContent>
                           </Tooltip>
                         </>
                       )}
                     </div>
-                  </div>
-
-                  {/* Right Side - Status & Actions */}
-                  <div className="flex-shrink-0 flex items-center gap-3 self-center">
-                    <StatusBadge status={car.status} />
+                    
+                    {/* Actions */}
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 transition-smooth hover:bg-accent/50 rounded-full">
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-popover">
-                        <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate(`/cars/${car.id}`)}>
-                          <Eye className="h-4 w-4" />
-                          Peržiūrėti
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/cars/${car.id}`); }}>
+                          <Eye className="h-4 w-4 mr-2" /> Peržiūrėti
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2 cursor-pointer">
-                          <Edit className="h-4 w-4" />
-                          Redaguoti
+                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                          <Edit className="h-4 w-4 mr-2" /> Redaguoti
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2 text-destructive cursor-pointer">
-                          <Trash className="h-4 w-4" />
-                          Ištrinti
+                        <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>
+                          <Trash className="h-4 w-4 mr-2" /> Ištrinti
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -437,105 +509,120 @@ export default function Cars() {
             const techStatus = getExpirationStatus(car.techInspection);
             const insuranceStatus = getExpirationStatus(car.insurance);
             const locationInfo = getLocationInfo(car.location);
-            const serviceProgress = getServiceProgress(car.mileage, car.nextServiceKm);
-            const idleDays = getIdleDays(car.lastRentalEnd);
+            const currentImageIndex = getImageIndex(car.id);
             
             return (
-              <Card key={car.id} className="overflow-hidden hover-lift bg-gradient-to-br from-card to-card/50">
-                <div className="p-4 flex gap-3">
-                  {/* Car Image with Location Badge */}
-                  <div className="relative flex-shrink-0">
-                    <img
-                      src={car.image}
-                      alt={`${car.brand} ${car.model}`}
-                      className="w-20 h-20 rounded-xl object-cover shadow-smooth"
-                    />
-                    <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${locationInfo.color} flex items-center justify-center shadow-sm`}>
-                      <MapPin className="h-2.5 w-2.5 text-white" />
-                    </div>
+              <Card 
+                key={car.id} 
+                className="overflow-hidden bg-gradient-to-br from-card to-card/50"
+                onClick={() => navigate(`/cars/${car.id}`)}
+              >
+                {/* Image with Overlay */}
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <img
+                    src={car.images[currentImageIndex]}
+                    alt={`${car.brand} ${car.model}`}
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  
+                  {/* Top Left - Status */}
+                  <div className="absolute top-2.5 left-2.5">
+                    <StatusBadge status={car.status} />
                   </div>
                   
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <h3 className="font-semibold truncate">{car.brand} {car.model}</h3>
-                        <p className="text-xs font-mono text-muted-foreground">{car.plate}</p>
+                  {/* Top Right - Location */}
+                  <div className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full ${locationInfo.color} flex items-center justify-center shadow-lg`}>
+                    <MapPin className="h-3.5 w-3.5 text-white" />
+                  </div>
+                  
+                  {/* Image Navigation */}
+                  {car.images.length > 1 && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute left-1.5 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-black/40 text-white"
+                        onClick={(e) => { e.stopPropagation(); prevImage(car.id, car.images.length); }}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-black/40 text-white"
+                        onClick={(e) => { e.stopPropagation(); nextImage(car.id, car.images.length); }}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      
+                      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-1">
+                        {car.images.map((_, idx) => (
+                          <div 
+                            key={idx}
+                            className={`w-1.5 h-1.5 rounded-full ${idx === currentImageIndex ? 'bg-white w-3' : 'bg-white/50'}`}
+                          />
+                        ))}
                       </div>
-                      <StatusBadge status={car.status} />
+                    </>
+                  )}
+                  
+                  {/* Bottom Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <h3 className="font-bold text-white">{car.brand} {car.model}</h3>
+                        <div className="flex items-center gap-1.5 text-white/80 text-xs">
+                          <span className="font-mono bg-white/20 px-1 py-0.5 rounded">{car.plate}</span>
+                          <span>• {car.year}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-white">{car.dailyRate}€<span className="text-xs font-normal">/d</span></div>
+                      </div>
                     </div>
-                    
-                    {/* Rating & Revenue Row */}
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1">
-                        <div className="flex">{renderStars(car.rating)}</div>
-                        <span className="text-xs text-muted-foreground">({car.totalRatings})</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3 text-success" />
-                        <span className="text-xs font-medium text-success">{formatCurrency(car.monthlyRevenue)}</span>
-                      </div>
-                    </div>
-
-                    {/* Next Reservation */}
-                    {car.nextReservation && (
-                      <div className="flex items-center gap-1.5 text-xs text-primary">
-                        <Calendar className="h-3 w-3" />
-                        <span>{car.nextReservation.date} • {car.nextReservation.client}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
                 
-                {/* Bottom Status Bar */}
-                <div className="px-4 py-2.5 bg-muted/30 border-t border-border/30 flex items-center justify-between">
+                {/* Info Bar */}
+                <div className="px-3 py-2.5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {/* Documents */}
-                    <div className="flex items-center gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1 cursor-help">
-                            <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(techStatus.status)}`} />
-                            <Wrench className={`h-3 w-3 ${getStatusTextColor(techStatus.status)}`} />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs">
-                          <p className="font-medium">Tech. apžiūra: {techStatus.label}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1 cursor-help">
-                            <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(insuranceStatus.status)}`} />
-                            <Shield className={`h-3 w-3 ${getStatusTextColor(insuranceStatus.status)}`} />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs">
-                          <p className="font-medium">Draudimas: {insuranceStatus.label}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                    {/* Rating */}
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3.5 w-3.5 fill-warning text-warning" />
+                      <span className="text-sm font-semibold">{car.rating}</span>
                     </div>
-
-                    <div className="w-px h-3 bg-border/50" />
-
-                    {/* Service Progress - Compact */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center gap-1.5 cursor-help">
-                          <Progress value={serviceProgress.progress} className="h-1 w-12" />
-                          <span className="text-xs text-muted-foreground">{(serviceProgress.remaining / 1000).toFixed(0)}k</span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs">
-                        <p className="font-medium">Iki serviso: {serviceProgress.remaining.toLocaleString()} km</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    
+                    <div className="w-px h-4 bg-border/50" />
+                    
+                    {/* Revenue */}
+                    <div className="flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3 text-success" />
+                      <span className="text-xs font-medium text-success">{formatCurrency(car.monthlyRevenue)}</span>
+                    </div>
+                    
+                    <div className="w-px h-4 bg-border/50" />
+                    
+                    {/* Documents */}
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-0.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(techStatus.status)}`} />
+                        <Wrench className={`h-3 w-3 ${getStatusTextColor(techStatus.status)}`} />
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(insuranceStatus.status)}`} />
+                        <Shield className={`h-3 w-3 ${getStatusTextColor(insuranceStatus.status)}`} />
+                      </div>
+                    </div>
                   </div>
-
-                  {/* Idle Days */}
-                  {idleDays !== null && car.status === "available" && (
-                    <div className={`flex items-center gap-1 text-xs ${idleDays > 7 ? 'text-warning' : 'text-muted-foreground'}`}>
-                      <Clock className="h-3 w-3" />
-                      <span>{idleDays}d</span>
+                  
+                  {/* Next Reservation */}
+                  {car.nextReservation && (
+                    <div className="flex items-center gap-1 text-primary text-xs">
+                      <Calendar className="h-3 w-3" />
+                      <span className="font-medium">{car.nextReservation.date}</span>
                     </div>
                   )}
                 </div>
