@@ -362,98 +362,123 @@ export default function CarDetails() {
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Professional Car Card with Gallery + Info */}
-            <Card className="overflow-hidden bg-gradient-to-br from-card to-card/50">
-              {/* Main Image with Overlay Info */}
-              <div className="relative">
-                <div 
-                  className="aspect-[16/10] sm:aspect-video bg-muted relative overflow-hidden cursor-zoom-in group"
-                  onClick={() => openLightbox(mainImage)}
-                >
-                  <img
-                    src={car.images[mainImage]}
-                    alt={`${car.make} ${car.model}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-                    <ZoomIn className="h-10 w-10 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-lg" />
+            <Card className="overflow-hidden border-0 shadow-xl bg-card">
+              {/* Main Image Section */}
+              <div 
+                className="relative aspect-[16/9] bg-muted overflow-hidden cursor-zoom-in group"
+                onClick={() => openLightbox(mainImage)}
+              >
+                <img
+                  src={car.images[mainImage]}
+                  alt={`${car.make} ${car.model}`}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                {/* Elegant gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                
+                {/* Zoom indicator */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  <div className="p-4 rounded-full bg-white/20 backdrop-blur-sm">
+                    <ZoomIn className="h-8 w-8 text-white" />
                   </div>
-                  {/* Car Title Overlay */}
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground drop-shadow-sm">
-                      {car.make} {car.model}
-                    </h2>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1.5">
-                      <span className="font-mono bg-background/60 backdrop-blur-sm px-2 py-0.5 rounded font-semibold text-foreground">
+                </div>
+
+                {/* Car name overlay at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight">
+                        {car.make} {car.model}
+                      </h2>
+                      <p className="text-white/70 text-sm mt-1">{car.year} • {car.fuel}</p>
+                    </div>
+                    <div className="hidden sm:block">
+                      <span className="font-mono text-lg font-bold text-white bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/30">
                         {car.plate}
                       </span>
-                      <span className="bg-background/60 backdrop-blur-sm px-2 py-0.5 rounded">{car.year}</span>
-                      <span className="bg-background/60 backdrop-blur-sm px-2 py-0.5 rounded">{car.fuel}</span>
                     </div>
                   </div>
                 </div>
-                
-                {/* Thumbnail Strip */}
-                <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background/80 to-transparent">
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {car.images.map((image, index) => (
-                      <button
-                        key={index}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setMainImage(index);
-                        }}
-                        className={cn(
-                          "w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 hover:scale-105 shadow-md",
-                          mainImage === index
-                            ? "border-primary shadow-lg shadow-primary/30 scale-105"
-                            : "border-background/50 hover:border-primary/50"
-                        )}
-                      >
-                        <img
-                          src={image}
-                          alt={`Thumbnail ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
+
+                {/* Image counter badge */}
+                <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full">
+                  {mainImage + 1} / {car.images.length}
                 </div>
               </div>
 
-              {/* Car Details Grid */}
-              <div className="p-4 sm:p-5 border-t border-border/50">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Valstybinis nr.</p>
-                    <p className="text-sm font-mono font-bold">{car.plate}</p>
+              {/* Thumbnail Gallery - Below image */}
+              <div className="p-3 sm:p-4 bg-muted/30 border-b border-border/50">
+                <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-1 scrollbar-hide">
+                  {car.images.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMainImage(index);
+                      }}
+                      className={cn(
+                        "relative w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden transition-all flex-shrink-0",
+                        mainImage === index
+                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background scale-105 shadow-lg"
+                          : "opacity-60 hover:opacity-100 hover:scale-105"
+                      )}
+                    >
+                      <img
+                        src={image}
+                        alt={`Nuotrauka ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {mainImage === index && (
+                        <div className="absolute inset-0 border-2 border-primary rounded-lg" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Car Details Grid - Clean modern design */}
+              <div className="p-4 sm:p-6">
+                {/* Primary Info Row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Valst. Nr.</p>
+                    <p className="text-lg font-mono font-bold text-primary">{car.plate}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Metai</p>
-                    <p className="text-sm font-semibold">{car.year}</p>
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Metai</p>
+                    <p className="text-lg font-semibold">{car.year}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Kuras</p>
-                    <p className="text-sm font-semibold">{car.fuel}</p>
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Kuras</p>
+                    <p className="text-lg font-semibold">{car.fuel}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Rida</p>
-                    <p className="text-sm font-semibold">{car.mileage.toLocaleString()} km</p>
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Rida</p>
+                    <p className="text-lg font-semibold">{car.mileage.toLocaleString()} <span className="text-sm text-muted-foreground">km</span></p>
                   </div>
                 </div>
                 
-                <div className="mt-4 pt-4 border-t border-border/30">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">VIN kodas</p>
+                {/* Separator */}
+                <div className="my-4 sm:my-5 border-t border-border/50" />
+
+                {/* Secondary Info Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40">
+                    <div className="p-2 rounded-lg bg-background">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">VIN kodas</p>
                       <p className="text-sm font-mono truncate">{car.vin}</p>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Dabartinė vieta</p>
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                        <p className="text-sm truncate">{car.currentLocation}</p>
-                      </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40">
+                    <div className="p-2 rounded-lg bg-background">
+                      <MapPin className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Dabartinė vieta</p>
+                      <p className="text-sm truncate">{car.currentLocation}</p>
                     </div>
                   </div>
                 </div>
