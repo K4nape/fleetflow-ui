@@ -361,130 +361,106 @@ export default function CarDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Image Gallery */}
-            <Card className="group overflow-hidden bg-gradient-to-br from-card to-card/50 hover:shadow-xl transition-all duration-300">
-              <div 
-                className="aspect-video bg-muted relative overflow-hidden cursor-zoom-in"
-                onClick={() => openLightbox(mainImage)}
-              >
-                <img
-                  src={car.images[mainImage]}
-                  alt={`${car.make} ${car.model}`}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <ZoomIn className="h-12 w-12 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {/* Professional Car Card with Gallery + Info */}
+            <Card className="overflow-hidden bg-gradient-to-br from-card to-card/50">
+              {/* Main Image with Overlay Info */}
+              <div className="relative">
+                <div 
+                  className="aspect-[16/10] sm:aspect-video bg-muted relative overflow-hidden cursor-zoom-in group"
+                  onClick={() => openLightbox(mainImage)}
+                >
+                  <img
+                    src={car.images[mainImage]}
+                    alt={`${car.make} ${car.model}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                    <ZoomIn className="h-10 w-10 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-lg" />
+                  </div>
+                  {/* Car Title Overlay */}
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground drop-shadow-sm">
+                      {car.make} {car.model}
+                    </h2>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1.5">
+                      <span className="font-mono bg-background/60 backdrop-blur-sm px-2 py-0.5 rounded font-semibold text-foreground">
+                        {car.plate}
+                      </span>
+                      <span className="bg-background/60 backdrop-blur-sm px-2 py-0.5 rounded">{car.year}</span>
+                      <span className="bg-background/60 backdrop-blur-sm px-2 py-0.5 rounded">{car.fuel}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Thumbnail Strip */}
+                <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-background/80 to-transparent">
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {car.images.map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMainImage(index);
+                        }}
+                        className={cn(
+                          "w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 hover:scale-105 shadow-md",
+                          mainImage === index
+                            ? "border-primary shadow-lg shadow-primary/30 scale-105"
+                            : "border-background/50 hover:border-primary/50"
+                        )}
+                      >
+                        <img
+                          src={image}
+                          alt={`Thumbnail ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="p-3 sm:p-4 flex gap-2 sm:gap-3 overflow-x-auto">
-                {car.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setMainImage(index)}
-                    className={cn(
-                      "w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 hover:scale-105",
-                      mainImage === index
-                        ? "border-primary shadow-lg shadow-primary/25 scale-105"
-                        : "border-border/50 hover:border-primary/50"
-                    )}
-                  >
-                    <img
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
+
+              {/* Car Details Grid */}
+              <div className="p-4 sm:p-5 border-t border-border/50">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Valstybinis nr.</p>
+                    <p className="text-sm font-mono font-bold">{car.plate}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Metai</p>
+                    <p className="text-sm font-semibold">{car.year}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Kuras</p>
+                    <p className="text-sm font-semibold">{car.fuel}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Rida</p>
+                    <p className="text-sm font-semibold">{car.mileage.toLocaleString()} km</p>
+                  </div>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t border-border/30">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">VIN kodas</p>
+                      <p className="text-sm font-mono truncate">{car.vin}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Dabartinė vieta</p>
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                        <p className="text-sm truncate">{car.currentLocation}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </Card>
 
             {/* Mini Calendar */}
-            <Card className="p-4 sm:p-6 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  Užimtumas
-                </h2>
-                <div className="flex items-center gap-1">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
-                    onClick={() => setCalendarWeekOffset(prev => prev - 1)}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
-                    onClick={() => setCalendarWeekOffset(prev => prev + 1)}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-                {calendarDays.slice(0, 7).map((day, i) => (
-                  <div key={i} className="text-center">
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 uppercase">{day.dayName}</p>
-                  </div>
-                ))}
-                {calendarDays.map((day, i) => (
-                  <div
-                    key={day.dateStr}
-                    className={cn(
-                      "aspect-square rounded-lg flex items-center justify-center text-xs sm:text-sm font-medium transition-all cursor-pointer hover:scale-110",
-                      day.isToday && "ring-2 ring-primary ring-offset-2 ring-offset-background",
-                      day.reservation
-                        ? "bg-primary/20 text-primary hover:bg-primary/30 shadow-sm"
-                        : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
-                    )}
-                    title={day.reservation ? `${day.reservation.clientName}` : "Laisva"}
-                  >
-                    {day.dayNumber}
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-primary/20"></div>
-                  <span>Rezervuota</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-muted/30"></div>
-                  <span>Laisva</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Basic Info */}
-            <Card className="p-4 sm:p-6 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-all duration-300">
-              <h2 className="text-lg sm:text-xl font-semibold mb-4">Pagrindinė informacija</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                <div className="group flex items-start gap-3 p-3 sm:p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02]">
-                  <Calendar className="h-5 w-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Metai</p>
-                    <p className="font-semibold truncate">{car.year}</p>
-                  </div>
-                </div>
-                <div className="group flex items-start gap-3 p-3 sm:p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02]">
-                  <Fuel className="h-5 w-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Kuras</p>
-                    <p className="font-semibold truncate">{car.fuel}</p>
-                  </div>
-                </div>
-                <div className="group flex items-start gap-3 p-3 sm:p-4 bg-muted/30 rounded-xl col-span-2 sm:col-span-1 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02]">
-                  <Gauge className="h-5 w-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Rida</p>
-                    <p className="font-semibold truncate">{car.mileage.toLocaleString()} km</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
 
             {/* Insurance & Technical */}
             <Card className="p-4 sm:p-6 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-all duration-300">
