@@ -10,7 +10,7 @@ const navigation = [
   { name: "Klientai", href: "/clients", icon: Users },
   { name: "Sutartys", href: "/contracts", icon: FileText },
   { name: "Rezervacijos", href: "/reservations", icon: Calendar },
-  { name: "Finansai", href: "/finance", icon: DollarSign },
+  { name: "Finansai", href: "/finances", icon: DollarSign },
   { name: "Nustatymai", href: "/settings", icon: Settings },
 ];
 
