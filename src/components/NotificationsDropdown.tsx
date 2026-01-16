@@ -164,129 +164,108 @@ export function NotificationsDropdown() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative hover:bg-accent/50 transition-all duration-300"
+          className="relative h-9 w-9 hover:bg-accent/50 transition-all duration-200"
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <>
-              <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full animate-pulse shadow-lg shadow-destructive/50" />
-              <span className="absolute -top-1 -right-1 h-5 w-5 bg-destructive rounded-full flex items-center justify-center text-[10px] font-bold text-destructive-foreground animate-scale-in">
-                {unreadCount}
-              </span>
-            </>
+            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-destructive rounded-full flex items-center justify-center text-[9px] font-bold text-destructive-foreground ring-2 ring-background">
+              {unreadCount}
+            </span>
           )}
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
         align="end"
-        className="w-[380px] p-0 bg-card/95 backdrop-blur-xl border-border/50 shadow-2xl rounded-2xl overflow-hidden"
+        className="w-80 p-0 bg-popover border-border shadow-xl rounded-xl overflow-hidden"
         sideOffset={8}
       >
         {/* Header */}
-        <div className="px-4 py-4 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Bell className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Pranešimai</h3>
-                <p className="text-xs text-muted-foreground">
-                  {unreadCount > 0
-                    ? `${unreadCount} neperskaityti`
-                    : "Visi perskaityti"}
-                </p>
-              </div>
-            </div>
+        <div className="px-3 py-2.5 border-b border-border/50 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold">Pranešimai</span>
             {unreadCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={markAllAsRead}
-                className="text-xs text-primary hover:text-primary hover:bg-primary/10"
-              >
-                Žymėti visus
-              </Button>
+              <span className="h-5 px-1.5 bg-primary/10 text-primary text-[10px] font-medium rounded-full flex items-center">
+                {unreadCount} nauji
+              </span>
             )}
           </div>
+          {unreadCount > 0 && (
+            <button
+              onClick={markAllAsRead}
+              className="text-[11px] text-primary hover:underline"
+            >
+              Skaityti visus
+            </button>
+          )}
         </div>
 
         {/* Notifications List */}
-        <ScrollArea className="max-h-[400px]">
+        <ScrollArea className="max-h-72">
           {notifications.length === 0 ? (
-            <div className="py-12 text-center">
-              <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                <Bell className="h-8 w-8 text-muted-foreground/50" />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Nėra pranešimų
-              </p>
+            <div className="py-8 text-center">
+              <Bell className="h-6 w-6 text-muted-foreground/40 mx-auto mb-2" />
+              <p className="text-xs text-muted-foreground">Nėra pranešimų</p>
             </div>
           ) : (
-            <div className="py-2">
+            <div className="py-1">
               {notifications.map((notification) => {
                 const Icon = getNotificationIcon(notification.type);
-                const colors = getNotificationColors(
-                  notification.type,
-                  notification.read
-                );
+                const colors = getNotificationColors(notification.type, notification.read);
 
                 return (
                   <div
                     key={notification.id}
                     onClick={() => markAsRead(notification.id)}
                     className={cn(
-                      "group relative px-4 py-3 cursor-pointer transition-all duration-200",
+                      "group relative px-3 py-2 cursor-pointer transition-colors",
                       "hover:bg-accent/50",
                       !notification.read && "bg-primary/5",
                       colors.baseOpacity
                     )}
                   >
-                    <div className="flex gap-3">
+                    <div className="flex gap-2.5">
                       {/* Icon */}
                       <div
                         className={cn(
-                          "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-110",
-                          colors.bg,
-                          colors.border
+                          "h-7 w-7 rounded-lg flex items-center justify-center shrink-0",
+                          colors.bg
                         )}
                       >
-                        <Icon className={cn("h-5 w-5", colors.icon)} />
+                        <Icon className={cn("h-3.5 w-3.5", colors.icon)} />
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center justify-between gap-2">
                           <p
                             className={cn(
-                              "text-sm font-medium text-foreground truncate",
-                              notification.read && "text-muted-foreground"
+                              "text-xs font-medium truncate",
+                              notification.read ? "text-muted-foreground" : "text-foreground"
                             )}
                           >
                             {notification.title}
                           </p>
-                          {!notification.read && (
-                            <span className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1.5" />
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                          {notification.message}
-                        </p>
-                        <div className="flex items-center gap-1 mt-1.5">
-                          <Clock className="h-3 w-3 text-muted-foreground/60" />
-                          <span className="text-[10px] text-muted-foreground/60">
+                          <span className="text-[10px] text-muted-foreground/60 shrink-0">
                             {notification.time}
                           </span>
                         </div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                          {notification.message}
+                        </p>
                       </div>
+
+                      {/* Unread dot */}
+                      {!notification.read && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0 mt-1" />
+                      )}
 
                       {/* Remove button */}
                       <button
                         onClick={(e) => removeNotification(notification.id, e)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-6 w-6 rounded-lg hover:bg-destructive/10 flex items-center justify-center shrink-0"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5 rounded hover:bg-destructive/10 flex items-center justify-center shrink-0 absolute right-2 top-2"
                       >
-                        <X className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                        <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
                       </button>
                     </div>
                   </div>
@@ -298,14 +277,11 @@ export function NotificationsDropdown() {
 
         {/* Footer */}
         {notifications.length > 0 && (
-          <div className="px-4 py-3 border-t border-border/50 bg-gradient-to-r from-transparent to-primary/5">
-            <Button
-              variant="ghost"
-              className="w-full justify-center gap-2 text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
-            >
-              <span>Žiūrėti visus pranešimus</span>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+          <div className="px-3 py-2 border-t border-border/50">
+            <button className="w-full text-[11px] text-center text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1">
+              Žiūrėti visus
+              <ChevronRight className="h-3 w-3" />
+            </button>
           </div>
         )}
       </DropdownMenuContent>
