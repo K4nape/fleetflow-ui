@@ -15,6 +15,7 @@ import ContractDetails from "./pages/ContractDetails";
 import ContractFormPage from "./pages/ContractForm";
 import ContractPDF from "./pages/ContractPDF";
 import Finances from "./pages/Finances";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/contracts/:id" element={<ContractDetails />} />
             <Route path="/contracts/:id/pdf" element={<ContractPDF />} />
             <Route path="/finances" element={<Finances />} />
+            <Route path="/notifications" element={<Notifications />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

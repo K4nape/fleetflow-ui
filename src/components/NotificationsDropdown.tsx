@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bell, Car, FileText, AlertTriangle, Calendar, CheckCircle2, Clock, Euro, Wrench, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -138,6 +139,7 @@ const getNotificationColors = (type: NotificationType, read: boolean) => {
 };
 
 export function NotificationsDropdown() {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState(mockNotifications);
   const [open, setOpen] = useState(false);
 
@@ -278,7 +280,13 @@ export function NotificationsDropdown() {
         {/* Footer */}
         {notifications.length > 0 && (
           <div className="px-3 py-2 border-t border-border/50">
-            <button className="w-full text-[11px] text-center text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1">
+            <button 
+              onClick={() => {
+                setOpen(false);
+                navigate("/notifications");
+              }}
+              className="w-full text-[11px] text-center text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1"
+            >
               Žiūrėti visus
               <ChevronRight className="h-3 w-3" />
             </button>
