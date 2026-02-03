@@ -1,13 +1,13 @@
 import { NavLink } from "@/components/NavLink";
-import { Home, Car, Users, FileText, Calendar, Settings } from "lucide-react";
+import { Home, Car, Users, ClipboardList, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home, label: "Pradžia" },
   { name: "Mašinos", href: "/cars", icon: Car, label: "Mašinos" },
   { name: "Klientai", href: "/clients", icon: Users, label: "Klientai" },
-  { name: "Sutartys", href: "/contracts", icon: FileText, label: "Sutartys" },
-  { name: "Rezervacijos", href: "/reservations", icon: Calendar, label: "Rezerv." },
+  { name: "Užsakymai", href: "/orders", icon: ClipboardList, label: "Užsakymai" },
+  { name: "Finansai", href: "/finances", icon: DollarSign, label: "Finansai" },
 ];
 
 export function BottomNav() {

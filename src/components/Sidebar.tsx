@@ -1,4 +1,4 @@
-import { Home, Car, Users, FileText, Calendar, DollarSign, Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, Car, Users, ClipboardList, DollarSign, Settings, ChevronLeft, ChevronRight } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -8,8 +8,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Mašinos", href: "/cars", icon: Car },
   { name: "Klientai", href: "/clients", icon: Users },
-  { name: "Sutartys", href: "/contracts", icon: FileText },
-  { name: "Rezervacijos", href: "/reservations", icon: Calendar },
+  { name: "Užsakymai", href: "/orders", icon: ClipboardList },
   { name: "Finansai", href: "/finances", icon: DollarSign },
   { name: "Nustatymai", href: "/settings", icon: Settings },
 ];

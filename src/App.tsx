@@ -10,9 +10,9 @@ import CarDetails from "./pages/CarDetails";
 import CarForm from "./pages/CarForm";
 import Clients from "./pages/Clients";
 import ClientDetails from "./pages/ClientDetails";
-import Contracts from "./pages/Contracts";
-import ContractDetails from "./pages/ContractDetails";
-import ContractFormPage from "./pages/ContractForm";
+import Orders from "./pages/Orders";
+import OrderDetails from "./pages/OrderDetails";
+import OrderForm from "./pages/OrderForm";
 import ContractPDF from "./pages/ContractPDF";
 import Finances from "./pages/Finances";
 import Notifications from "./pages/Notifications";
@@ -35,10 +35,10 @@ const App = () => (
             <Route path="/cars/:id/edit" element={<CarForm />} />
             <Route path="/clients" element={<Clients />} />
             <Route path="/clients/:id" element={<ClientDetails />} />
-            <Route path="/contracts" element={<Contracts />} />
-            <Route path="/contracts/new" element={<ContractFormPage />} />
-            <Route path="/contracts/:id" element={<ContractDetails />} />
-            <Route path="/contracts/:id/pdf" element={<ContractPDF />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/orders/new" element={<OrderForm />} />
+            <Route path="/orders/:id" element={<OrderDetails />} />
+            <Route path="/orders/:id/pdf" element={<ContractPDF />} />
             <Route path="/finances" element={<Finances />} />
             <Route path="/notifications" element={<Notifications />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
