@@ -10,15 +10,14 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { NavLink } from "@/components/NavLink";
-import { Home, Car, Users, FileText, Calendar, DollarSign, Settings } from "lucide-react";
+import { Home, Car, Users, ClipboardList, DollarSign, Settings } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Mašinos", href: "/cars", icon: Car },
   { name: "Klientai", href: "/clients", icon: Users },
-  { name: "Sutartys", href: "/contracts", icon: FileText },
-  { name: "Rezervacijos", href: "/reservations", icon: Calendar },
-  { name: "Finansai", href: "/finance", icon: DollarSign },
+  { name: "Užsakymai", href: "/orders", icon: ClipboardList },
+  { name: "Finansai", href: "/finances", icon: DollarSign },
   { name: "Nustatymai", href: "/settings", icon: Settings },
 ];
 
