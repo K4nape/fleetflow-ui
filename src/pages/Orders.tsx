@@ -499,12 +499,23 @@ export default function Orders() {
                       alt={`${order.car.brand} ${order.car.model}`}
                       className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover"
                     />
-                    <span className={cn(
-                      "absolute -top-1.5 -right-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded-full border",
-                      typeConfig.color
-                    )}>
-                      {order.type === "reservation" ? "R" : "S"}
-                    </span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className={cn(
+                            "absolute -top-2 -right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full border shadow-sm cursor-help",
+                            order.type === "reservation" 
+                              ? "bg-info text-info-foreground border-info" 
+                              : "bg-primary text-primary-foreground border-primary"
+                          )}>
+                            {order.type === "reservation" ? "Rez" : "Sut"}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {order.type === "reservation" ? "Rezervacija" : "Sutartis"}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
 
                   {/* Content */}
