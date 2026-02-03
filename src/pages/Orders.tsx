@@ -484,57 +484,114 @@ export default function Orders() {
             const statusConfig = getStatusConfig(order.status);
             const typeConfig = getTypeConfig(order.type);
             const StatusIcon = statusConfig.icon;
+            const paymentProgress = Math.round((order.paidAmount / order.totalAmount) * 100);
+            const daysCount = Math.ceil((new Date(order.endDate).getTime() - new Date(order.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
             return (
               <Card 
                 key={order.id}
-                className="p-3 sm:p-4 hover:shadow-lg transition-all cursor-pointer group"
+                className={cn(
+                  "p-4 sm:p-5 hover:shadow-xl transition-all cursor-pointer group border-l-4",
+                  order.type === "reservation" ? "border-l-info" : "border-l-primary"
+                )}
                 onClick={() => navigate(`/orders/${order.id}`)}
               >
-                <div className="flex gap-3 sm:gap-4">
-                  {/* Car Image */}
+                <div className="flex gap-4">
+                  {/* Car Image with overlay */}
                   <div className="relative flex-shrink-0">
                     <img
                       src={order.car.image}
                       alt={`${order.car.brand} ${order.car.model}`}
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover"
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover shadow-md"
                     />
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className={cn(
-                            "absolute -top-2 -right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full border shadow-sm cursor-help",
-                            order.type === "reservation" 
-                              ? "bg-info text-info-foreground border-info" 
-                              : "bg-primary text-primary-foreground border-primary"
-                          )}>
-                            {order.type === "reservation" ? "Rez" : "Sut"}
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {order.type === "reservation" ? "Rezervacija" : "Sutartis"}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-1.5 left-1.5 right-1.5">
+                      <p className="text-[10px] text-white font-medium truncate">{order.car.plate}</p>
+                    </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
+                  {/* Main Content */}
+                  <div className="flex-1 min-w-0 space-y-2.5">
+                    {/* Header Row */}
                     <div className="flex items-start justify-between gap-2">
-                      <div>
+                      <div className="space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono text-sm font-medium">{order.orderNumber}</span>
-                          <StatusBadge status={statusConfig.variant === "success" ? "available" : statusConfig.variant === "warning" ? "reserved" : "in_service"}>
-                            <StatusIcon className="h-3 w-3 mr-1" />
-                            {statusConfig.label}
-                          </StatusBadge>
+                          <span className={cn(
+                            "text-xs font-medium px-2 py-0.5 rounded-md border",
+                            typeConfig.color
+                          )}>
+                            {typeConfig.label}
+                          </span>
+                          <span className="font-mono text-sm font-semibold text-foreground">{order.orderNumber}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-0.5 truncate">
-                          {order.car.brand} {order.car.model} • {order.car.plate}
-                        </p>
+                        <h3 className="font-semibold text-base">
+                          {order.car.brand} {order.car.model}
+                        </h3>
                       </div>
-                      <div className="hidden sm:block text-right">
-                        <p className="font-semibold">{formatCurrency(order.totalAmount)}</p>
+                      <StatusBadge status={statusConfig.variant === "success" ? "available" : statusConfig.variant === "warning" ? "reserved" : statusConfig.variant === "destructive" ? "rented" : "in_service"}>
+                        <StatusIcon className="h-3 w-3 mr-1" />
+                        {statusConfig.label}
+                      </StatusBadge>
+                    </div>
+
+                    {/* Info Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1.5 text-sm">
+                      <div className="flex items-center gap-1.5">
+                        <User className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate font-medium">{order.client.name}</span>
+                        {order.client.type === "company" && (
+                          <span className="text-[10px] bg-muted px-1.5 rounded">Įmonė</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <CalendarIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span>{formatDate(order.startDate)} — {formatDate(order.endDate)}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span>{daysCount} {daysCount === 1 ? "diena" : daysCount < 10 ? "dienos" : "dienų"}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Car className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        <span className="font-mono text-muted-foreground">{order.car.plate}</span>
+                      </div>
+                    </div>
+
+                    {/* Payment & Amount Row */}
+                    <div className="flex items-center justify-between pt-1 border-t border-border/50">
+                      <div className="flex items-center gap-4">
+                        {/* Payment Progress */}
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 sm:w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className={cn(
+                                "h-full rounded-full transition-all",
+                                paymentProgress >= 100 ? "bg-success" : paymentProgress > 0 ? "bg-warning" : "bg-muted-foreground/30"
+                              )}
+                              style={{ width: `${Math.min(paymentProgress, 100)}%` }}
+                            />
+                          </div>
+                          <span className={cn(
+                            "text-xs font-medium",
+                            paymentProgress >= 100 ? "text-success" : paymentProgress > 0 ? "text-warning" : "text-muted-foreground"
+                          )}>
+                            {paymentProgress >= 100 ? "Apmokėta" : `${paymentProgress}%`}
+                          </span>
+                        </div>
+                        {/* Deposit Status */}
+                        <div className="hidden sm:flex items-center gap-1.5 text-xs">
+                          <span className="text-muted-foreground">Depozitas:</span>
+                          <span className={cn(
+                            "font-medium",
+                            order.depositPaid ? "text-success" : "text-warning"
+                          )}>
+                            {formatCurrency(order.deposit)} {order.depositPaid ? "✓" : "(laukia)"}
+                          </span>
+                        </div>
+                      </div>
+                      {/* Total Amount */}
+                      <div className="text-right">
+                        <p className="text-lg sm:text-xl font-bold text-foreground">{formatCurrency(order.totalAmount)}</p>
                         {order.paidAmount > 0 && order.paidAmount < order.totalAmount && (
                           <p className="text-xs text-muted-foreground">
                             Sumokėta: {formatCurrency(order.paidAmount)}
@@ -542,32 +599,10 @@ export default function Orders() {
                         )}
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-3 text-sm">
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                          <User className="h-3.5 w-3.5" />
-                          <span className="truncate max-w-[120px] sm:max-w-none">{order.client.name}</span>
-                        </div>
-                        <div className="hidden sm:flex items-center gap-1.5 text-muted-foreground">
-                          <CalendarIcon className="h-3.5 w-3.5" />
-                          <span>{formatDate(order.startDate)} — {formatDate(order.endDate)}</span>
-                        </div>
-                      </div>
-                      <div className="sm:hidden text-right">
-                        <p className="font-semibold text-sm">{formatCurrency(order.totalAmount)}</p>
-                      </div>
-                    </div>
-
-                    {/* Mobile dates */}
-                    <div className="flex sm:hidden items-center gap-1.5 text-xs text-muted-foreground mt-1.5">
-                      <CalendarIcon className="h-3 w-3" />
-                      <span>{formatDate(order.startDate)} — {formatDate(order.endDate)}</span>
-                    </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="hidden sm:flex items-center gap-1">
+                  {/* Desktop Actions */}
+                  <div className="hidden lg:flex items-start gap-1">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
